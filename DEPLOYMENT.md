@@ -54,11 +54,16 @@ UPI_NAME=The Music Society
    - Enter `backend/**`. This ensures Railway ONLY redeploys when backend files change.
 4. (Optional) In the service settings, you can set the **Root Directory** to `backend`.
 5. Add the following **Environment Variables**:
-   - `MONGODB_URI`: Your MongoDB Atlas connection string.
-   - `JWT_SECRET`: A secure random string.
-   - `USER_JWT_SECRET`: Another secure random string.
-   - `FRONTEND_URL`: Your Vercel deployment URL (e.g., `https://bhajan-frontend.vercel.app`).
-   - (Include SMTP and other variables from step 2).
+   *   `MONGODB_URI`: Your MongoDB connection string (from Atlas or Railway).
+   *   `JWT_SECRET`: A secure random string for admin login.
+   *   `USER_JWT_SECRET`: A secure random string for user login.
+   *   `FRONTEND_URL`: Your Vercel URL (e.g., `https://bhajan-frontend.vercel.app`).
+   *   `SMTP_HOST`: `smtp.gmail.com`
+   *   `SMTP_PORT`: `465`
+   *   `SMTP_SECURE`: `true`
+   *   `SMTP_USER`: Your Gmail address.
+   *   `SMTP_PASS`: Your Gmail **App Password** (not your regular password).
+   *   `EVENT_NAME`, `TICKET_PRICE`, `UPI_ID`: (Optional, will use defaults if not set).
 
 ### B. Frontend (Vercel)
 1. In Vercel, click **Add New** -> **Project**.

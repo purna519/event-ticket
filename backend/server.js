@@ -16,10 +16,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 
 // ─── CORS ───────────────────────────────────────────────────────────────────
-app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
-  credentials: true
-}));
+app.use(cors());
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/auth', require('./routes/auth'));
@@ -34,8 +31,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // ─── MongoDB Connection ────────────────────────────────────────────────────────
+const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/event-ticketing';
+console.log(`📡 Attempting to connect to: ${mongoURI.split('@').length > 1 ? 'Remote MongoDB Atlas' : 'Local MongoDB (localhost)'}`);
+
 mongoose
-  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/event-ticketing')
+  .connect(mongoURI)
   .then(async () => {
     console.log('✅ MongoDB connected');
     await seedAdminAndEvent();
