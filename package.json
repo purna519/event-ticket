@@ -1,0 +1,11 @@
+{
+  "name": "bhajan-event-ticketing-root",
+  "version": "1.0.0",
+  "description": "Root orchestration for Railway (Backend only)",
+  "scripts": {
+    "start": "npm start --prefix backend"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
