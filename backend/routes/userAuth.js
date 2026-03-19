@@ -37,6 +37,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
+    const startTime = Date.now();
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
@@ -49,13 +50,20 @@ router.post('/register', async (req, res) => {
       otpExpires,
     });
 
+    console.log(`[PERF] Starting user save for ${email}...`);
     await user.save();
+    console.log(`[PERF] User saved in ${Date.now() - startTime}ms`);
+
+    const emailStartTime = Date.now();
+    console.log(`[PERF] Starting sendOTP to ${email}...`);
     const emailSent = await sendOTP(email, otp, name);
+    console.log(`[PERF] sendOTP finished in ${Date.now() - emailStartTime}ms`);
     
     if (!emailSent) {
       return res.status(500).json({ error: 'Failed to send verification email. Please try again later.' });
     }
 
+    console.log(`[PERF] Total registration time: ${Date.now() - startTime}ms`);
     res.status(201).json({ message: 'OTP sent to your email' });
   } catch (err) {
     console.error('Registration error:', err);

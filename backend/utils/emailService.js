@@ -6,6 +6,9 @@ const nodemailer = require('nodemailer');
 
 // Configure transporter (Default to console log for testing if no env provided)
 const transporter = nodemailer.createTransport({
+  pool: true, // Use a pool for multiple sends
+  maxConnections: 5,
+  maxMessages: 100,
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: process.env.SMTP_SECURE === 'true',
