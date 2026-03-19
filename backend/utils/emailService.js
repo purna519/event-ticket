@@ -65,11 +65,11 @@ async function sendViaResend(to, subject, html, attachments = []) {
       return true;
     } else {
       console.error('[RESEND] API Error:', data);
-      return false;
+      return data; // Return full error object
     }
   } catch (err) {
     console.error('[RESEND] Fetch Error:', err.message);
-    return false;
+    return { error: err.message };
   }
 }
 

@@ -39,10 +39,14 @@ app.get('/api/test-email-send', async (req, res) => {
   console.log(`[DEBUG] Attempting test email to ${email}...`);
   const result = await sendOTP(email, '123456', 'Test User');
   
-  if (result) {
+  if (result === true) {
     res.json({ message: 'Email sent successfully (check logs for details)' });
   } else {
-    res.status(500).json({ error: 'Email failed (check server logs for details)' });
+    // result will be the error details if it failed
+    res.status(500).json({ 
+      error: 'Email failed', 
+      details: result 
+    });
   }
 });
 
