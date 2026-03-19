@@ -50,11 +50,16 @@ router.post('/register', async (req, res) => {
     });
 
     await user.save();
-    await sendOTP(email, otp, name);
+    const emailSent = await sendOTP(email, otp, name);
+    
+    if (!emailSent) {
+      return res.status(500).json({ error: 'Failed to send verification email. Please try again later.' });
+    }
 
     res.status(201).json({ message: 'OTP sent to your email' });
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Registration error:', err);
+    res.status(500).json({ error: 'Server error during registration' });
   }
 });
 
@@ -102,14 +107,16 @@ router.post('/login', async (req, res) => {
       user.otp = otp;
       user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
       await user.save();
-      await sendOTP(email, otp, user.name);
+      const sent = await sendOTP(email, otp, user.name);
+      if (!sent) return res.status(500).json({ error: 'Account not verified and failed to send new OTP. Contact admin.' });
       return res.status(403).json({ error: 'Account not verified. New OTP sent.' });
     }
 
     const token = jwt.sign({ id: user._id, role: 'user' }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { name: user.name, email: user.email, phone: user.phone } });
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Server error during login' });
   }
 });
 
@@ -127,9 +134,12 @@ router.post('/reset-password-request', async (req, res) => {
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await sendOTP(email, otp, user.name);
+    const sent = await sendOTP(email, otp, user.name);
+    if (!sent) return res.status(500).json({ error: 'Failed to send reset code. Please try again.' });
+    
     res.json({ message: 'OTP sent for password reset' });
   } catch (err) {
+    console.error('Reset request error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

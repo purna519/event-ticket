@@ -41,10 +41,16 @@ async function sendOTP(email, otp, name) {
   }
 
   try {
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent successfully to:', email, '| MsgID:', info.messageId);
     return true;
   } catch (err) {
-    console.error('Email sending failed:', err);
+    console.error('❌ EMAIL SENDING FAILED:', {
+      to: email,
+      error: err.message,
+      code: err.code,
+      response: err.response
+    });
     return false;
   }
 }
