@@ -137,6 +137,20 @@ export default function AdminUsers() {
                     <td className="px-8 py-6 text-right">
                       <div className="flex items-center justify-end gap-2 lg:opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
+                          onClick={async () => {
+                            try {
+                              await api.patch(`/admin/users/${u._id}/verify`, { isVerified: !u.isVerified });
+                              fetchUsers();
+                            } catch (err) {
+                              alert('Verification toggle failed');
+                            }
+                          }}
+                          className={`p-2.5 rounded-xl transition-all ${u.isVerified ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' : 'bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10'}`}
+                          title={u.isVerified ? 'Unverify User' : 'Verify User'}
+                        >
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                        </button>
+                        <button 
                           onClick={() => handleEdit(u)}
                           className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-zinc-400 hover:text-white transition-all"
                         >

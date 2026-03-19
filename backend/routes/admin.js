@@ -503,6 +503,28 @@ router.put('/users/:id', async (req, res) => {
 });
 
 /**
+ * PATCH /api/admin/users/:id/verify
+ * Manually verify or unverify a user
+ */
+router.patch('/users/:id/verify', async (req, res) => {
+  try {
+    const { isVerified } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.isVerified = isVerified;
+    if (isVerified) {
+      user.otp = undefined;
+      user.otpExpires = undefined;
+    }
+    await user.save();
+    res.json({ message: `User ${isVerified ? 'verified' : 'unverified'} successfully`, user });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+/**
  * DELETE /api/admin/users/:id
  * Remove a user
  */
