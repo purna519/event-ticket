@@ -30,12 +30,12 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-12">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-12">
         <div>
           <h1 className="text-3xl font-black text-white tracking-tighter">DASHBOARD</h1>
           <p className="text-white/30 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">REAL-TIME OVERVIEW</p>
         </div>
-        <button onClick={() => api.get('/admin/stats').then((r) => setStats(r.data))} className="btn-secondary w-auto px-5 py-2.5 text-xs font-black uppercase tracking-widest gap-2">
+        <button onClick={() => api.get('/admin/stats').then((r) => setStats(r.data))} className="btn-secondary w-full sm:w-auto px-5 py-2.5 text-xs font-black uppercase tracking-widest gap-2">
           <RefreshCcw size={14} /> Refresh
         </button>
       </div>
@@ -45,27 +45,27 @@ export default function AdminDashboard() {
           <div className="spinner" /> Loading stats…
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {cards.map(({ icon: Icon, label, value, color }) => (
             <div key={label} className={`stat-card ${color}`}>
               <div className="text-white/20 mb-4">
                 <Icon size={28} strokeWidth={1.5} />
               </div>
-              <div className="text-5xl font-black text-white mb-2 tracking-tighter tabular-nums">{value}</div>
+              <div className="text-4xl sm:text-5xl font-black text-white mb-2 tracking-tighter tabular-nums">{value}</div>
               <div className="text-white/30 text-[9px] font-black uppercase tracking-[0.25em]">{label}</div>
             </div>
           ))}
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { to: '/admin/scanner', icon: Scan, title: 'Live Scanner', desc: 'ATTENDANCE NODE' },
           { to: '/admin/payments', icon: Upload, title: 'Upload CSV', desc: 'PAYMENT SYNC' },
           { to: '/admin/bookings', icon: Users, title: 'Bookings', desc: 'VERIFICATION' },
           { to: '/admin/event', icon: Settings2, title: 'Event Config', desc: 'SYSTEM SETTINGS' },
         ].map(({ to, icon: Icon, title, desc }) => (
-          <Link key={to} to={to} className="card hover:bg-white/[0.04] p-10 group transition-all duration-500">
+          <Link key={to} to={to} className="card hover:bg-white/[0.04] p-8 sm:p-10 group transition-all duration-500">
             <div className="text-white/20 group-hover:text-white transition-colors duration-500 mb-6">
               <Icon size={32} strokeWidth={1} />
             </div>

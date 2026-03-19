@@ -101,13 +101,13 @@ export default function AdminPayments() {
         <p className="text-white/30 text-[10px] font-bold tracking-[0.2em] uppercase mt-2">BULK UPLOAD AND MANUAL ENTRY</p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* CSV Upload */}
-        <div className="card">
+        <div className="card !p-6 sm:!p-8">
           <h2 className="text-white font-black text-sm mb-1 flex items-center gap-2 uppercase tracking-tight">
             <Upload size={18} className="text-white/20" /> Upload CSV
           </h2>
-          <p className="text-white/40 text-xs mb-4">Required columns: UTR, Amount, Date (Date is optional)</p>
+          <p className="text-white/40 text-[10px] sm:text-xs mb-4">Required columns: UTR, Amount, Date</p>
           <input
             ref={fileRef}
             type="file"
@@ -118,68 +118,60 @@ export default function AdminPayments() {
           />
           <label
             htmlFor="csvInput"
-            className={`btn-primary cursor-pointer px-4 py-3 !text-xs ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
+            className={`btn-primary cursor-pointer px-4 py-3 !text-[11px] sm:!text-xs ${uploading ? 'opacity-50 pointer-events-none' : ''}`}
           >
-            {uploading ? <div className="spinner" /> : <><Upload size={14} className="mr-2" /> Choose CSV File</>}
+            {uploading ? <div className="spinner" /> : <><Upload size={14} className="mr-2" /> Choose CSV</>}
           </label>
           {uploadResult && (
-            <div className={`mt-3 p-3 rounded-xl text-sm ${uploadResult.success ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+            <div className={`mt-3 p-3 rounded-xl text-[11px] sm:text-xs ${uploadResult.success ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
               {uploadResult.msg}
             </div>
           )}
           {/* CSV Format Example */}
-          <div className="mt-4 p-3 rounded-xl bg-black/30 border border-white/5">
-            <p className="text-white/30 text-xs font-mono">UTR,Amount,Date<br />
-            306120563434,499,2026-04-01<br />
-            405231674545,499,2026-04-02</p>
+          <div className="mt-4 p-3 rounded-xl bg-black/30 border border-white/5 overflow-x-auto no-scrollbar">
+            <p className="text-white/30 text-[10px] font-mono whitespace-nowrap">UTR,Amount,Date<br />
+            306120563434,499,2026-04-01</p>
           </div>
         </div>
 
         {/* Manual Entry */}
-        <div className="card">
+        <div className="card !p-6 sm:!p-8">
           <h2 className="text-white font-black text-sm mb-1 flex items-center gap-2 uppercase tracking-tight">
             <Edit3 size={18} className="text-white/20" /> Manual Entry
           </h2>
-          <p className="text-white/40 text-xs mb-4">Add a single payment record</p>
+          <p className="text-white/40 text-[10px] sm:text-xs mb-4">Add a single payment record</p>
           <form onSubmit={handleManual} className="space-y-3">
-            <div>
-              <label className="input-label">UTR / Transaction ID</label>
-              <input
-                type="text"
-                value={manual.utr}
-                onChange={(e) => setManual((p) => ({ ...p, utr: e.target.value }))}
-                placeholder="306120563434"
-                required
-                className="input font-mono"
-              />
-            </div>
-            <div>
-              <label className="input-label">Amount (₹)</label>
-              <input
-                type="number"
-                value={manual.amount}
-                onChange={(e) => setManual((p) => ({ ...p, amount: e.target.value }))}
-                placeholder="499"
-                required
-                min="1"
-                className="input"
-              />
-            </div>
-            <div>
-              <label className="input-label">Date (optional)</label>
-              <input
-                type="date"
-                value={manual.date}
-                onChange={(e) => setManual((p) => ({ ...p, date: e.target.value }))}
-                className="input"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="input-label">UTR</label>
+                <input
+                  type="text"
+                  value={manual.utr}
+                  onChange={(e) => setManual((p) => ({ ...p, utr: e.target.value }))}
+                  placeholder="30612...34"
+                  required
+                  className="input font-mono !py-3"
+                />
+              </div>
+              <div>
+                <label className="input-label">Amount (₹)</label>
+                <input
+                  type="number"
+                  value={manual.amount}
+                  onChange={(e) => setManual((p) => ({ ...p, amount: e.target.value }))}
+                  placeholder="499"
+                  required
+                  min="1"
+                  className="input !py-3"
+                />
+              </div>
             </div>
             {manualMsg && (
-              <p className={`text-sm ${manualMsg.startsWith('✅') ? 'text-emerald-400' : 'text-red-400'}`}>
+              <p className={`text-[11px] ${manualMsg.startsWith('✅') ? 'text-emerald-400' : 'text-red-400'}`}>
                 {manualMsg}
               </p>
             )}
-            <button type="submit" disabled={manualLoading} className="btn-primary py-3 text-xs uppercase tracking-widest font-black">
+            <button type="submit" disabled={manualLoading} className="btn-primary py-3 !text-[11px] uppercase tracking-widest font-black">
               {manualLoading ? <div className="spinner" /> : 'Add Record'}
             </button>
           </form>
@@ -188,16 +180,16 @@ export default function AdminPayments() {
 
       {/* Payment Records Table */}
       <div className="card !p-0 overflow-hidden">
-        <div className="flex items-center justify-between px-8 py-6 border-b border-white/5 bg-white/[0.01]">
-          <h2 className="text-white font-black text-sm uppercase tracking-tight">All Records ({payments.length})</h2>
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 sm:px-8 py-6 border-b border-white/5 bg-white/[0.01] gap-4">
+          <h2 className="text-white font-black text-sm uppercase tracking-tight">Records ({payments.length})</h2>
+          <div className="relative w-full sm:w-48">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={14} />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search..."
-              className="input w-48 py-2 pl-9 text-xs"
+              className="input w-full py-2 pl-9 text-xs"
             />
           </div>
         </div>

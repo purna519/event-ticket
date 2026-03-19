@@ -103,35 +103,37 @@ export default function AdminBookings() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-8">
-        <div className="relative flex-1 min-w-[300px]">
+      <div className="flex flex-col lg:flex-row gap-4 mb-8">
+        <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={16} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, phone, email, or UTR..."
+            placeholder="Search by name, phone, or UTR..."
             className="input pl-11 py-3"
           />
         </div>
-        <div className="flex gap-2">
-          {['all', 'pending', 'verified', 'rejected'].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                filter === f
-                  ? 'bg-white text-black shadow-lg shadow-white/5'
-                  : 'bg-white/[0.03] text-white/30 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              {f}
-            </button>
-          ))}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex gap-1 bg-white/[0.03] p-1 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar">
+            {['all', 'pending', 'verified', 'rejected'].map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap ${
+                  filter === f
+                    ? 'bg-white text-black shadow-lg'
+                    : 'text-white/30 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+          <button onClick={fetchBookings} className="btn-secondary w-full sm:w-auto px-5 py-3 aspect-square sm:!p-0">
+            <RefreshCcw size={16} className="mr-2 sm:mr-0" /> <span className="sm:hidden">Refresh</span>
+          </button>
         </div>
-        <button onClick={fetchBookings} className="btn-secondary w-auto px-5 py-3 aspect-square !p-0">
-          <RefreshCcw size={16} />
-        </button>
       </div>
 
       {/* Table */}

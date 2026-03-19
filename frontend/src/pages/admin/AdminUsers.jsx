@@ -62,9 +62,9 @@ export default function AdminUsers() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter uppercase italic flex items-center gap-3">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tighter uppercase italic flex items-center gap-3 text-white">
             <Users className="w-8 h-8" /> User Directory
           </h1>
           <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mt-1">Manage platform members</p>
@@ -72,7 +72,7 @@ export default function AdminUsers() {
         
         <button 
           onClick={() => { setEditingUser(null); setFormData({ name: '', email: '', phone: '', password: '' }); setIsModalOpen(true); }}
-          className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95"
+          className="flex items-center justify-center gap-2 bg-white text-black px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 w-full sm:w-auto"
         >
           <Plus className="w-3 h-3" /> Add New User
         </button>
@@ -83,7 +83,7 @@ export default function AdminUsers() {
         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-white transition-colors" />
         <input 
           type="text"
-          placeholder="Search by name, email or phone..."
+          placeholder="Search members..."
           className="w-full bg-zinc-900/50 border border-white/5 rounded-3xl py-5 pl-14 pr-6 text-white placeholder:text-zinc-600 focus:border-white/20 focus:bg-zinc-900 transition-all outline-none text-sm font-medium"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -93,33 +93,33 @@ export default function AdminUsers() {
       {/* Users Table */}
       <div className="bg-zinc-900/30 border border-white/5 rounded-3xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[600px] lg:min-w-0">
             <thead>
               <tr className="border-b border-white/5 bg-white/[0.02]">
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">User</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">Contact</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-500">Verified</th>
-                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-zinc-500 text-right">Actions</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500">User</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500">Contact</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500">Status</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {loading ? (
                 <tr>
-                  <td colSpan="4" className="px-6 py-20 text-center">
+                  <td colSpan="4" className="px-8 py-20 text-center">
                     <Loader2 className="w-6 h-6 text-zinc-700 animate-spin mx-auto" />
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="px-6 py-20 text-center text-zinc-500 text-[10px] font-black uppercase tracking-widest">
-                    No users found matching your search
+                  <td colSpan="4" className="px-8 py-20 text-center text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                    No users found
                   </td>
                 </tr>
               ) : (
                 users.map((u) => (
                   <tr key={u._id} className="hover:bg-white/[0.01] transition-colors group">
-                    <td className="px-6 py-6 font-bold text-white tracking-tight uppercase italic">{u.name}</td>
-                    <td className="px-6 py-6">
+                    <td className="px-8 py-6 font-bold text-white tracking-tight uppercase italic">{u.name}</td>
+                    <td className="px-8 py-6">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-bold tracking-tight uppercase">
                           <Mail className="w-3 h-3 opacity-30" /> {u.email}
@@ -129,22 +129,22 @@ export default function AdminUsers() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-6">
+                    <td className="px-8 py-6">
                       <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${u.isVerified ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'}`}>
                         {u.isVerified ? 'Verified' : 'Pending'}
                       </span>
                     </td>
-                    <td className="px-6 py-6 text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <td className="px-8 py-6 text-right">
+                      <div className="flex items-center justify-end gap-2 lg:opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => handleEdit(u)}
-                          className="p-2 hover:bg-white/10 rounded-xl text-zinc-400 hover:text-white transition-all"
+                          className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-zinc-400 hover:text-white transition-all"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => handleDelete(u._id)}
-                          className="p-2 hover:bg-red-500/10 rounded-xl text-zinc-400 hover:text-red-500 transition-all"
+                          className="p-2.5 bg-white/5 hover:bg-red-500/10 rounded-xl text-zinc-400 hover:text-red-500 transition-all"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

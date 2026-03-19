@@ -62,8 +62,8 @@ export default function AdminScanner() {
 
   return (
     <div className="max-w-xl mx-auto py-8">
-      <div className="mb-12 text-center lg:text-left">
-        <h1 className="text-3xl font-black text-white tracking-tighter uppercase">Attendance Scanner</h1>
+      <div className="mb-12 text-center lg:text-left px-4">
+        <h1 className="text-3xl font-black text-white tracking-tighter uppercase">Attendance</h1>
         <p className="text-white/30 text-[10px] font-bold tracking-[0.2em] uppercase mt-2">LIVE VERIFICATION NODE</p>
       </div>
 
