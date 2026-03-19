@@ -54,17 +54,15 @@ router.post('/register', async (req, res) => {
     await user.save();
     console.log(`[PERF] User saved in ${Date.now() - startTime}ms`);
 
-    const emailStartTime = Date.now();
-    console.log(`[PERF] Starting sendOTP to ${email}...`);
-    const emailSent = await sendOTP(email, otp, name);
-    console.log(`[PERF] sendOTP finished in ${Date.now() - emailStartTime}ms`);
-    
-    if (!emailSent) {
-      return res.status(500).json({ error: 'Failed to send verification email. Please try again later.' });
-    }
+    // Non-blocking email sending to avoid 499 timeouts
+    sendOTP(email, otp, name).then(sent => {
+      if (!sent) console.error(`[ERROR] Background OTP send failed for ${email}`);
+      else console.log(`[INFO] Background OTP sent to ${email}`);
+    }).catch(err => {
+      console.error(`[CRITICAL] Background OTP error for ${email}:`, err);
+    });
 
-    console.log(`[PERF] Total registration time: ${Date.now() - startTime}ms`);
-    res.status(201).json({ message: 'OTP sent to your email' });
+    res.status(201).json({ message: 'Registration successful. OTP sent to your email.' });
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ error: 'Server error during registration' });
@@ -115,8 +113,10 @@ router.post('/login', async (req, res) => {
       user.otp = otp;
       user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
       await user.save();
-      const sent = await sendOTP(email, otp, user.name);
-      if (!sent) return res.status(500).json({ error: 'Account not verified and failed to send new OTP. Contact admin.' });
+      
+      // Non-blocking
+      sendOTP(email, otp, user.name).catch(err => console.error(`[ERROR] Background Login OTP failed for ${email}:`, err));
+      
       return res.status(403).json({ error: 'Account not verified. New OTP sent.' });
     }
 
@@ -142,8 +142,8 @@ router.post('/reset-password-request', async (req, res) => {
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    const sent = await sendOTP(email, otp, user.name);
-    if (!sent) return res.status(500).json({ error: 'Failed to send reset code. Please try again.' });
+    // Non-blocking
+    sendOTP(email, otp, user.name).catch(err => console.error(`[ERROR] Background Reset OTP failed for ${email}:`, err));
     
     res.json({ message: 'OTP sent for password reset' });
   } catch (err) {
