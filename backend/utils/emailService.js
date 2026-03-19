@@ -6,10 +6,14 @@ const nodemailer = require('nodemailer');
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
+const BREVO_API_KEY = (process.env.BREVO_API_KEY || '').trim();
 
 // Sanitize SMTP Password (remove spaces if any)
 const SMTP_PASS = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
 const SMTP_USER = process.env.SMTP_USER;
+
+// Priority logic for 'from' address
+const EMAIL_FROM = process.env.EMAIL_FROM || SMTP_USER || 'onboarding@resend.dev';
 
 // Standard Transporter for SMTP fallback
 const transporter = nodemailer.createTransport({
@@ -22,14 +26,58 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
+ * Helper to send via Brevo (formerly Sendinblue) HTTP API
+ * Best for users without a custom domain.
+ */
+async function sendViaBrevo(to, subject, html, attachments = []) {
+  console.log(`[BREVO] Attempting API send to ${to}...`);
+  try {
+    const payload = {
+      sender: { name: "The Music Society", email: EMAIL_FROM },
+      to: [{ email: to }],
+      subject: subject,
+      htmlContent: html,
+    };
+
+    if (attachments.length > 0) {
+      payload.attachment = attachments.map(a => ({
+        name: a.filename,
+        content: a.content.toString('base64'),
+      }));
+    }
+
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': BREVO_API_KEY,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      console.log(`[BREVO] API Success! ID: ${data.messageId}`);
+      return true;
+    } else {
+      console.error('[BREVO] API Error:', data);
+      return data;
+    }
+  } catch (err) {
+    console.error('[BREVO] Fetch Error:', err.message);
+    return { error: err.message };
+  }
+}
+
+/**
  * Helper to send via Resend HTTP API (Bypasses SMTP port blocks)
  */
 async function sendViaResend(to, subject, html, attachments = []) {
   console.log(`[RESEND] Attempting API send to ${to}...`);
   try {
-    // IMPORTANT: If using Resend without a verified domain, 'from' MUST be 'onboarding@resend.dev'
-    // We default to onboarding@resend.dev unless the user provides a custom RESEND_FROM variable.
-    const fromAddress = process.env.RESEND_FROM || 'onboarding@resend.dev';
+    // IMPORTANT: If using Resend without a verified domain, 'fromAddress' MUST be 'onboarding@resend.dev'
+    const fromAddress = process.env.RESEND_FROM || (RESEND_API_KEY ? 'onboarding@resend.dev' : EMAIL_FROM);
     
     const body = {
       from: `"The Music Society" <${fromAddress}>`,
@@ -81,18 +129,23 @@ async function sendOTP(email, otp, name) {
             <p>This code will expire in 10 minutes.</p>
           </div>`;
 
-  // Priority 1: Resend API
+  // Priority 1: Brevo API (Lensient for no domain)
+  if (BREVO_API_KEY) {
+    return await sendViaBrevo(email, subject, html);
+  }
+
+  // Priority 2: Resend API
   if (RESEND_API_KEY) {
     return await sendViaResend(email, subject, html);
   }
 
-  // Priority 2: Simulation Mode
+  // Priority 3: Simulation Mode
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
     console.log(`[EMAIL SIMULATION] To: ${email} | OTP: ${otp}`);
     return true;
   }
 
-  // Priority 3: SMTP (Legacy/Local)
+  // Priority 4: SMTP (Legacy/Local)
   try {
     const info = await transporter.sendMail({
       from: `"The Music Society" <${process.env.SMTP_USER}>`,
@@ -116,18 +169,23 @@ async function sendTicket(email, pdfBuffer, name, eventName) {
   const html = `<p>Hello ${name},</p><p>Your tickets for <b>${eventName}</b> are confirmed! Please find them attached.</p>`;
   const filename = `${eventName.replace(/\s+/g, '_')}_Ticket.pdf`;
 
-  // Priority 1: Resend API
+  // Priority 1: Brevo
+  if (BREVO_API_KEY) {
+    return await sendViaBrevo(email, subject, html, [{ filename, content: pdfBuffer }]);
+  }
+
+  // Priority 2: Resend API
   if (RESEND_API_KEY) {
     return await sendViaResend(email, subject, html, [{ filename, content: pdfBuffer }]);
   }
 
-  // Priority 2: Simulation
+  // Priority 3: Simulation
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
     console.log(`[EMAIL SIMULATION] To: ${email} | PDF TICKET SENT`);
     return true;
   }
 
-  // Priority 3: SMTP
+  // Priority 4: SMTP
   try {
     await transporter.sendMail({
       from: `"The Music Society" <${process.env.SMTP_USER}>`,
