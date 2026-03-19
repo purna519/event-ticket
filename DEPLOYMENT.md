@@ -45,13 +45,26 @@ UPI_NAME=The Music Society
 5. To run in development: `npm run dev`
 
 ## 5. Deployment Options
-### A. Local Machine / VPS
-- Use **PM2** to keep the backend running: `pm2 start server.js --name "bhajan-api"`
-- Serve the `frontend/dist` folder using **Nginx** or **Apache**.
 
-### B. Cloud (Vercel/Render)
-- **Backend**: Deploy the `/backend` folder to Render.com as a "Web Service".
-- **Frontend**: Deploy the `/frontend` folder to Vercel/Netlify. Connect it to the backend URL via environment variables.
+### A. Backend (Railway)
+1. In Railway, click **New Project** -> **Deploy from GitHub repo**.
+2. Select your repository.
+3. In the service settings, set the **Root Directory** to `backend`.
+4. Add the following **Environment Variables**:
+   - `MONGODB_URI`: Your MongoDB Atlas connection string.
+   - `JWT_SECRET`: A secure random string.
+   - `USER_JWT_SECRET`: Another secure random string.
+   - `FRONTEND_URL`: Your Vercel deployment URL (e.g., `https://bhajan-frontend.vercel.app`).
+   - (Include SMTP and other variables from step 2).
+
+### B. Frontend (Vercel)
+1. In Vercel, click **Add New** -> **Project**.
+2. Import your GitHub repository.
+3. Set the **Root Directory** to `frontend`.
+4. The **Framework Preset** should be auto-detected as **Vite**.
+5. Add the following **Environment Variable**:
+   - `VITE_API_BASE_URL`: Your Railway backend URL (e.g., `https://your-backend-url.up.railway.app/api`).
+6. Click **Deploy**.
 
 ## 6. Admin First Steps
 1. Login at `/admin/login` using the credentials in your `.env`.
