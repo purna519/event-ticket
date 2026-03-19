@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Root orchestration for Railway (Backend only)",
   "scripts": {
+    "build": "npm install --prefix backend",
     "start": "npm start --prefix backend"
   },
   "engines": {

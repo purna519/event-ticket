@@ -49,8 +49,11 @@ UPI_NAME=The Music Society
 ### A. Backend (Railway)
 1. In Railway, click **New Project** -> **Deploy from GitHub repo**.
 2. Select your repository.
-3. In the service settings, set the **Root Directory** to `backend`.
-4. Add the following **Environment Variables**:
+3. **Optimizing Build Triggers**:
+   - Go to **Settings** -> **Build** -> **Watch Patterns**.
+   - Enter `backend/**`. This ensures Railway ONLY redeploys when backend files change.
+4. (Optional) In the service settings, you can set the **Root Directory** to `backend`.
+5. Add the following **Environment Variables**:
    - `MONGODB_URI`: Your MongoDB Atlas connection string.
    - `JWT_SECRET`: A secure random string.
    - `USER_JWT_SECRET`: Another secure random string.
@@ -58,6 +61,12 @@ UPI_NAME=The Music Society
    - (Include SMTP and other variables from step 2).
 
 ### B. Frontend (Vercel)
+1. In Vercel, click **Add New** -> **Project**.
+2. Import your GitHub repository.
+3. **Optimizing Build Triggers**:
+   - In **Project Settings**, go to **Git** -> **Ignored Build Step**.
+   - Set it to: `git diff --quiet HEAD^ HEAD ./frontend`. This ensures Vercel ONLY builds when frontend files change.
+4. Set the **Root Directory** to `frontend`.
 1. In Vercel, click **Add New** -> **Project**.
 2. Import your GitHub repository.
 3. Set the **Root Directory** to `frontend`.
