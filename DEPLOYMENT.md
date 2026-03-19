@@ -67,13 +67,10 @@ UPI_NAME=The Music Society
    - In **Project Settings**, go to **Git** -> **Ignored Build Step**.
    - Set it to: `git diff --quiet HEAD^ HEAD ./frontend`. This ensures Vercel ONLY builds when frontend files change.
 4. Set the **Root Directory** to `frontend`.
-1. In Vercel, click **Add New** -> **Project**.
-2. Import your GitHub repository.
-3. Set the **Root Directory** to `frontend`.
-4. The **Framework Preset** should be auto-detected as **Vite**.
-5. Add the following **Environment Variable**:
+5. The **Framework Preset** should be auto-detected as **Vite**.
+6. Add the following **Environment Variable**:
    - `VITE_API_BASE_URL`: Your Railway backend URL (e.g., `https://your-backend-url.up.railway.app/api`).
-6. Click **Deploy**.
+7. Click **Deploy**.
 
 ## 6. Admin First Steps
 1. Login at `/admin/login` using the credentials in your `.env`.
