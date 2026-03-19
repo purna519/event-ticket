@@ -30,6 +30,22 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
+// ─── Test Email Connectivity (TEMPORARY) ──────────────────────────────────────
+app.get('/api/test-email-send', async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ error: 'Email query param required' });
+  
+  const { sendOTP } = require('./utils/emailService');
+  console.log(`[DEBUG] Attempting test email to ${email}...`);
+  const result = await sendOTP(email, '123456', 'Test User');
+  
+  if (result === true) {
+    res.json({ message: 'Email sent successfully via Brevo/Resend!' });
+  } else {
+    res.status(500).json({ error: 'Email failed', details: result });
+  }
+});
+
 // ─── MongoDB Connection ────────────────────────────────────────────────────────
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/event-ticketing';
 console.log(`📡 Attempting to connect to: ${mongoURI.split('@').length > 1 ? 'Remote MongoDB Atlas' : 'Local MongoDB (localhost)'}`);
