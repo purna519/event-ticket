@@ -6,9 +6,9 @@ const nodemailer = require('nodemailer');
 
 // Configure transporter (Default to console log for testing if no env provided)
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  pool: true,
-  maxConnections: 5,
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '465'),
+  secure: process.env.SMTP_SECURE === 'true', // true for 465, false for 587
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
@@ -20,7 +20,7 @@ const transporter = nodemailer.createTransport({
  */
 async function sendOTP(email, otp, name) {
   const mailOptions = {
-    from: `"The Music Society" <${process.env.SMTP_USER || 'noreply@musicsociety.com'}>`,
+    from: `"The Music Society" <${process.env.SMTP_USER}>`,
     to: email,
     subject: 'Verification Code - The Music Society',
     text: `Hello ${name},\n\nYour verification code is: ${otp}\n\nThis code will expire in 10 minutes.`,
