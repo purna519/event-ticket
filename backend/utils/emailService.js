@@ -5,16 +5,21 @@
 const nodemailer = require('nodemailer');
 
 // Configure transporter (Default to console log for testing if no env provided)
+console.log(`[EMAIL] Initializing transporter: ${process.env.SMTP_HOST || 'smtp.gmail.com'}:${process.env.SMTP_PORT || '587'} (Secure: ${process.env.SMTP_SECURE})`);
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true', // Should be false for port 587
+  secure: process.env.SMTP_SECURE === 'true',
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 5000,
+  socketTimeout: 15000,
   tls: {
-    rejectUnauthorized: false // Helps with some cloud network restrictions
+    rejectUnauthorized: false
   }
 });
 
