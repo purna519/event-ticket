@@ -6,11 +6,6 @@ const nodemailer = require('nodemailer');
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
 const RESEND_API_KEY = (process.env.RESEND_API_KEY || '').trim();
-if (RESEND_API_KEY) {
-  console.log(`[RESEND] API Key detected (starts with: ${RESEND_API_KEY.substring(0, 5)}...)`);
-} else {
-  console.warn('[RESEND] API Key is missing in environment variables!');
-}
 
 // Sanitize SMTP Password (remove spaces if any)
 const SMTP_PASS = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
