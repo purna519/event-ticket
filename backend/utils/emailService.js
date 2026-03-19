@@ -6,14 +6,17 @@ const nodemailer = require('nodemailer');
 
 // ─── Configuration ─────────────────────────────────────────────────────────────
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const SMTP_USER = process.env.SMTP_USER || 'onboarding@resend.dev';
+
+// Sanitize SMTP Password (remove spaces if any)
+const SMTP_PASS = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
+const SMTP_USER = process.env.SMTP_USER;
 
 // Standard Transporter for SMTP fallback
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: process.env.SMTP_SECURE === 'true',
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  auth: { user: SMTP_USER, pass: SMTP_PASS },
   connectionTimeout: 10000,
   tls: { rejectUnauthorized: false }
 });
@@ -24,8 +27,12 @@ const transporter = nodemailer.createTransport({
 async function sendViaResend(to, subject, html, attachments = []) {
   console.log(`[RESEND] Attempting API send to ${to}...`);
   try {
+    // IMPORTANT: If using Resend without a verified domain, 'from' MUST be 'onboarding@resend.dev'
+    // We default to onboarding@resend.dev unless the user provides a custom RESEND_FROM variable.
+    const fromAddress = process.env.RESEND_FROM || 'onboarding@resend.dev';
+    
     const body = {
-      from: `"The Music Society" <${SMTP_USER}>`,
+      from: `"The Music Society" <${fromAddress}>`,
       to: [to],
       subject,
       html,
