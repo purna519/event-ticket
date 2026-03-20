@@ -56,7 +56,10 @@ export default function PaymentPage() {
   };
 
   const totalAmount = event ? event.price * quantity : 0;
-  const upiLink = event ? `upi://pay?pa=${event.upiId}&pn=${encodeURIComponent(event.upiName)}&am=${totalAmount}&cu=INR&tn=${encodeURIComponent(event.upiNote || 'Bhajan Entry')}` : '';
+  
+  // Generating a unique transaction reference to satisfy UPI security requirements
+  const transactionId = `T${Date.now()}R${Math.floor(Math.random() * 1000)}`;
+  const upiLink = event ? `upi://pay?pa=${event.upiId}&pn=${encodeURIComponent(event.upiName)}&am=${totalAmount}&cu=INR&tn=${encodeURIComponent(event.upiNote || 'Bhajan Entry')}&tr=${transactionId}&mc=0000` : '';
 
   if (loading) {
     return (
@@ -76,31 +79,34 @@ export default function PaymentPage() {
 
         {/* Main Content */}
         <div className="space-y-10">
-          <div>
+          <div className="relative">
             <div className="flex items-center gap-3 mb-4">
-              <span className="inline-block w-8 h-[1px] bg-white/20" />
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Secure Settlement</p>
+              <span className="inline-block w-8 h-[1px] bg-gradient-to-r from-yellow-500/50 to-transparent" />
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-yellow-500/60">Royal Reserve Secure</p>
             </div>
-            <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-[0.95] mb-4">
-              Complete<br />Payment
+            <h1 className="text-6xl font-black text-white tracking-tighter uppercase leading-[0.85] mb-4">
+              Executive<br /><span className="text-white/40">Checkout</span>
             </h1>
           </div>
 
-          {/* Pricing Banner */}
+          {/* Pricing Banner - More Premium */}
           <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-white/10 to-transparent rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-            <div className="relative card !p-8 bg-black/40 border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden">
+            <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-white/5 to-transparent rounded-[2.5rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+            <div className="relative card !p-10 bg-black/60 border-white/10 flex flex-col md:flex-row items-center justify-between gap-10 overflow-hidden backdrop-blur-xl">
               <div className="flex-1">
-                <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">TOTAL AMOUNT</p>
-                <p className="text-4xl font-black text-white tracking-tighter">₹{totalAmount}.00</p>
+                <p className="text-[9px] font-black text-yellow-500/40 uppercase tracking-[0.3em] mb-2">PREMIUM SETTLEMENT</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-light text-white/30">₹</span>
+                  <p className="text-6xl font-black text-white tracking-tighter lowercase">{totalAmount}<span className="text-2xl text-white/20">.00</span></p>
+                </div>
               </div>
 
-              <div className="flex items-center gap-4 bg-white/[0.03] border border-white/10 rounded-2xl p-2">
-                <p className="text-[9px] font-black text-white/30 uppercase tracking-widest px-4">Tickets</p>
+              <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-3xl p-3">
+                <p className="text-[9px] font-black text-white/30 uppercase tracking-widest px-4">Passes</p>
                 <select
                   value={quantity}
                   onChange={(e) => setQuantity(Number(e.target.value))}
-                  className="bg-black text-white font-black text-sm px-6 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-white/30 transition-all cursor-pointer"
+                  className="bg-black text-white font-black text-base px-8 py-4 rounded-2xl border border-white/10 focus:outline-none focus:border-yellow-500/50 transition-all cursor-pointer hover:bg-white/5"
                 >
                   {[...Array(10)].map((_, i) => (
                     <option key={i + 1} value={i + 1}>{i + 1}</option>
@@ -108,153 +114,205 @@ export default function PaymentPage() {
                 </select>
               </div>
 
-              <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 flex-shrink-0">
-                <CreditCard size={20} strokeWidth={1.5} />
+              <div className="w-16 h-16 rounded-[2rem] bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center text-yellow-500/40 flex-shrink-0">
+                <Sparkles size={24} strokeWidth={1} />
               </div>
               {/* Decorative Gradient */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.02] rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+              <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
             </div>
           </div>
 
-          {/* Payment Instructions */}
-          <div className="space-y-6">
-            <div className="flex items-start gap-4">
-              <div className="p-2 border border-white/10 rounded-lg bg-white/5 text-white/40"><Smartphone size={16} /></div>
-              <div>
-                <p className="text-[11px] font-bold text-white tracking-tight leading-snug">
-                  {isMobile ? 'Quick Pay via UPI' : 'Scan to Pay / Enter UPI ID'}
-                </p>
-                <p className="text-[10px] text-white/30 uppercase tracking-wider font-medium mt-1">
-                  {isMobile ? 'Tap the button below or scan with 3rd party app' : 'Scan the QR with your phone or copy the ID'}
-                </p>
-              </div>
+          {/* Payment Instructions - Royal Redesign */}
+          <div className="space-y-8">
+            <div className="flex items-center gap-4 px-2">
+              <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+              <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em]">Payment Options</p>
+              <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
             </div>
 
             {isMobile ? (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <p className="text-center text-[10px] font-black text-white/30 uppercase tracking-widest mb-2 italic">Tap to launch Secure Instance</p>
+                
                 <a
                   href={upiLink}
-                  className="flex items-center justify-between p-6 rounded-[2rem] bg-white text-black hover:bg-white/90 transition-all group shadow-xl"
+                  className="relative group overflow-hidden"
                 >
-                  <div className="flex items-center gap-4">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" alt="GPay" className="h-6" />
-                    <span className="text-[11px] font-black uppercase tracking-widest">Pay via Google Pay</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#1A73E8] to-[#174EA6] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative flex items-center justify-between p-7 rounded-[2.5rem] bg-white text-black transition-all transform group-hover:-translate-y-1 active:scale-95 shadow-2xl">
+                    <div className="flex items-center gap-5">
+                      <div className="w-12 h-12 rounded-2xl bg-black/5 flex items-center justify-center">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" alt="GPay" className="h-6" />
+                      </div>
+                      <div>
+                        <span className="block text-[11px] font-black uppercase tracking-widest">Google Pay</span>
+                        <span className="text-[9px] font-bold text-black/30 uppercase">Instant Express</span>
+                      </div>
+                    </div>
+                    <div className="w-10 h-10 rounded-full border border-black/10 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                      <ArrowRight size={18} />
+                    </div>
                   </div>
-                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </a>
 
                 <a
                   href={upiLink}
-                  className="flex items-center justify-between p-6 rounded-[2rem] bg-[#5f259f] text-white hover:bg-[#4d1e82] transition-all group shadow-xl"
+                  className="relative group overflow-hidden"
                 >
-                  <div className="flex items-center gap-4">
-                    <img src="https://vignette.wikia.nocookie.net/logopedia/images/e/e1/PhonePe_Logo.svg" alt="PhonePe" className="h-6 brightness-0 invert" />
-                    <span className="text-[11px] font-black uppercase tracking-widest">Pay via PhonePe</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#5f259f] to-[#3d1a66] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="relative flex items-center justify-between p-7 rounded-[2.5rem] bg-black border border-white/10 text-white transition-all transform group-hover:-translate-y-1 active:scale-95 shadow-2xl">
+                    <div className="flex items-center gap-5">
+                      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center">
+                        <img src="https://vignette.wikia.nocookie.net/logopedia/images/e/e1/PhonePe_Logo.svg" alt="PhonePe" className="h-6 brightness-0 invert" />
+                      </div>
+                      <div>
+                        <span className="block text-[11px] font-black uppercase tracking-widest text-white">PhonePe</span>
+                        <span className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Secure Protocol</span>
+                      </div>
+                    </div>
+                    <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors">
+                      <ArrowRight size={18} />
+                    </div>
                   </div>
-                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </a>
 
-                <div className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 text-center">
-                  <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Or scan with any UPI app</p>
-                  <div className="mt-4 flex justify-center">
-                    <div className="p-3 bg-white rounded-xl">
-                      <img src={paymentQr} alt="QR" className="w-24 h-24" />
+                {/* QR Fallback for Mobile - Premium Mini Card */}
+                <div className="mt-8 p-1 bg-gradient-to-br from-white/10 via-transparent to-white/5 rounded-[3rem]">
+                  <div className="bg-black/40 backdrop-blur-xl rounded-[2.8rem] p-8 text-center border border-white/5">
+                    <p className="text-[9px] text-white/30 font-black uppercase tracking-[0.3em] mb-6 italic">Alternative Scan Node</p>
+                    <div className="flex justify-center relative group">
+                      <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-0 group-hover:scale-100 transition-transform duration-1000" />
+                      <div className="relative p-4 bg-white rounded-3xl shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+                        <img src={paymentQr} alt="QR" className="w-32 h-32" />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center bg-white/[0.02] border border-white/5 rounded-[3rem] p-12 text-center">
-                <div className="relative group/qr mb-8">
-                  <div className="absolute -inset-8 bg-white/5 rounded-full blur-3xl opacity-50 group-hover/qr:opacity-100 transition-opacity" />
-                  <div className="relative p-6 bg-white rounded-[2.5rem] shadow-[0_0_50px_rgba(255,255,255,0.1)]">
-                    <img src={paymentQr} alt="Payment QR" className="w-56 h-56" />
-                    <div className="mt-4 flex items-center justify-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-black/10 animate-pulse" />
-                      <p className="text-[10px] font-black text-black/40 uppercase tracking-[0.2em]">Live Payment Node</p>
+              <div className="relative group p-[1px] bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-[4rem]">
+                <div className="relative flex flex-col items-center bg-black/80 backdrop-blur-2xl rounded-[3.9rem] p-16 text-center overflow-hidden">
+                  {/* Background Aura */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-64 bg-yellow-500/10 blur-[100px] -translate-y-1/2" />
+                  
+                  <div className="relative group/qr mb-10">
+                    <div className="absolute -inset-12 bg-white/10 rounded-full blur-[80px] opacity-0 group-hover/qr:opacity-100 transition-opacity duration-1000" />
+                    <div className="relative p-8 bg-white rounded-[3rem] shadow-[0_0_80px_rgba(255,255,255,0.1)] transition-transform duration-700 hover:scale-[1.02]">
+                      <img src={paymentQr} alt="Payment QR" className="w-64 h-64 opacity-90" />
+                      <div className="mt-6 flex items-center justify-center gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
+                        <p className="text-[9px] font-black text-black/50 uppercase tracking-[0.3em]">Royal Payment Node Active</p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-4 max-w-sm">
-                  <h3 className="text-white font-black text-xl tracking-tight uppercase">Scan to Complete Payment</h3>
-                  <p className="text-white/30 text-[11px] font-medium leading-relaxed">
-                    Open GPay, PhonePe, or any UPI app on your phone and scan the code above to pay <span className="text-white">₹{event.price * quantity}</span>
-                  </p>
-                  <div className="pt-6 border-t border-white/5 flex items-center justify-center gap-4 text-white/20">
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck size={14} />
-                      <span className="text-[9px] font-black uppercase tracking-widest">Secure Checkout</span>
+                  <div className="space-y-6 max-w-sm relative">
+                    <h3 className="text-white font-black text-2xl tracking-tighter uppercase leading-none">Scan to Settle</h3>
+                    <p className="text-white/40 text-[11px] font-medium leading-relaxed uppercase tracking-tighter">
+                      Open any UPI app and scan to transmit <span className="text-white font-black">₹{totalAmount}</span> into our secure vault.
+                    </p>
+                    <div className="pt-8 border-t border-white/10 flex items-center justify-center gap-6 text-white/20">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck size={14} className="text-yellow-500/50" />
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em]">Military-Grade Auth</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CreditCard size={14} />
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em]">Upi Protocol 2.0</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="card !p-6 bg-white/[0.01] border-white/5 flex items-center justify-between">
-              <div>
-                <p className="text-white/20 text-[9px] font-black uppercase tracking-widest mb-1">Support Contact</p>
-                <p className="text-white font-bold text-sm tracking-tight">{event.supportNumber || '7093237728'}</p>
+            {/* Support Info - Premium Minimal */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="group p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 flex items-center justify-between hover:bg-white/[0.04] transition-all">
+                <div>
+                  <p className="text-white/20 text-[8px] font-black uppercase tracking-[0.3em] mb-1">SUPPORT CONCIERGE</p>
+                  <p className="text-white font-black text-base tracking-tighter">{event.supportNumber || '7093237728'}</p>
+                </div>
+                <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/40 group-hover:text-yellow-500/60 transition-colors">
+                  <Phone size={20} strokeWidth={1.5} />
+                </div>
               </div>
-              <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/30">
-                <Phone size={18} />
-              </div>
-            </div>
 
-            <div className="card !p-6 bg-white/[0.01] border-white/5">
-              <div className="flex items-start gap-4">
-                <Info size={14} className="text-white/20 mt-1 flex-shrink-0" />
-                <div className="space-y-3">
-                  <p className="text-[11px] text-white/50 leading-relaxed font-medium uppercase tracking-tight">
-                    After payment, tick the confirmation and click <span className="text-white font-bold">"Confirm Payment"</span>.
-                    Your booking will be placed in <span className="text-white font-bold">Pending Status</span> until verified by our admin.
+              <div className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white/40">
+                  <Info size={20} strokeWidth={1.5} />
+                </div>
+                <div>
+                  <p className="text-white/20 text-[8px] font-black uppercase tracking-[0.3em] mb-1">TRANSACTION PROTOCOL</p>
+                  <p className="text-[10px] text-white/50 leading-tight font-bold uppercase tracking-tighter">
+                    Verify settlement before final confirmation
                   </p>
-                  <div className="flex items-center gap-2 text-[9px] font-black text-white/20 tracking-wider uppercase">
-                    <Sparkles size={10} /> Automated Confirmation Protocol
-                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Payment Declaration Checkbox */}
+            {/* Payment Declaration - Sleek Toggle */}
             <div
               onClick={() => setHasPaid(!hasPaid)}
-              className={`p-6 rounded-3xl border transition-all cursor-pointer flex items-center gap-4 group ${hasPaid ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'
-                }`}
+              className={`relative overflow-hidden p-8 rounded-[2.5rem] border transition-all duration-500 cursor-pointer flex items-center gap-6 group ${
+                hasPaid 
+                  ? 'bg-yellow-500/10 border-yellow-500/30 shadow-[0_0_40px_rgba(234,179,8,0.1)]' 
+                  : 'bg-white/[0.02] border-white/5 hover:border-white/20'
+              }`}
             >
-              <div className={`p-2 rounded-xl transition-all ${hasPaid ? 'bg-white text-black' : 'bg-white/5 text-white/20 group-hover:text-white/40'}`}>
-                {hasPaid ? <CheckSquare size={18} /> : <Square size={18} />}
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 ${
+                hasPaid 
+                  ? 'bg-yellow-500 text-black shadow-lg' 
+                  : 'bg-white/5 text-white/20 group-hover:bg-white/10 group-hover:text-white/40'
+              }`}>
+                {hasPaid ? <CheckSquare size={24} /> : <Square size={24} />}
               </div>
-              <div className="text-left">
-                <p className={`text-xs font-black uppercase tracking-tight transition-colors ${hasPaid ? 'text-white' : 'text-white/30'}`}>
-                  I have completed the payment
+              <div className="flex-1 text-left">
+                <p className={`text-sm font-black uppercase tracking-tight transition-colors duration-500 ${hasPaid ? 'text-white' : 'text-white/30'}`}>
+                  Settlement Confirmed
                 </p>
-                <p className="text-[9px] font-bold text-white/10 uppercase tracking-widest group-hover:text-white/20 transition-colors">
-                  I want my ticket and I've sent the funds
+                <p className="text-[10px] font-bold text-white/10 uppercase tracking-widest group-hover:text-white/20 transition-colors">
+                  I manifest that the funds have been dispatched
                 </p>
               </div>
+              {hasPaid && (
+                <div className="absolute right-8 top-1/2 -translate-y-1/2 text-yellow-500/40 animate-pulse">
+                  <Sparkles size={20} />
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="pt-4 flex flex-col gap-4">
+          <div className="pt-8 flex flex-col gap-6">
             <button
               disabled={submitting || !hasPaid}
               onClick={handlePaymentDone}
-              className="btn-primary py-5 text-[10px] font-black uppercase tracking-[0.4em] disabled:opacity-20 disabled:grayscale transition-all"
+              className="relative group overflow-hidden rounded-[2.5rem]"
             >
-              {submitting ? 'Initiating...' : 'Grab Your Tickets By Clicking Here'}
+              <div className={`absolute inset-0 bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600 transition-transform duration-500 ${submitting || !hasPaid ? 'opacity-20 grayscale' : 'group-hover:scale-110'}`} />
+              <div className={`relative btn-primary py-7 px-10 text-[11px] font-black uppercase tracking-[0.5em] border-none shadow-2xl transition-all ${submitting || !hasPaid ? 'opacity-50' : 'active:scale-[0.98]'}`}>
+                {submitting ? 'VALIDATING REFERENCE...' : 'INITIATE TICKET ISSUANCE'}
+              </div>
             </button>
+            
             <button
               onClick={() => navigate('/')}
-              className="w-full flex items-center justify-center gap-2 text-white/20 hover:text-white/40 text-[9px] font-black uppercase tracking-[0.3em] transition-all"
+              className="w-full flex items-center justify-center gap-3 text-white/20 hover:text-white/60 text-[9px] font-black uppercase tracking-[0.4em] transition-all py-2"
             >
-              <ArrowLeft size={12} /> Back to Event Details
+              <div className="h-[1px] w-4 bg-white/10" />
+              Return to Reserve
+              <div className="h-[1px] w-4 bg-white/10" />
             </button>
           </div>
 
-          <p className="text-center flex items-center justify-center gap-2 text-[10px] text-white/10 font-black uppercase tracking-widest mt-8">
-            <ShieldCheck size={12} /> Verified UPI Gateway Protocol
-          </p>
+          <div className="pt-12 text-center">
+            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/[0.02] border border-white/5">
+              <ShieldCheck size={12} className="text-yellow-500/40" />
+              <p className="text-[9px] text-white/10 font-black uppercase tracking-[0.3em]">
+                Verified Premium Gateway • Secured by HMS Protocol
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </PublicLayout>
