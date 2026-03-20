@@ -108,7 +108,7 @@ export default function PaymentPage() {
                   onChange={(e) => setQuantity(Number(e.target.value))}
                   className="bg-black text-white font-black text-base px-8 py-4 rounded-2xl border border-white/10 focus:outline-none focus:border-yellow-500/50 transition-all cursor-pointer hover:bg-white/5"
                 >
-                  {[...Array(10)].map((_, i) => (
+                  {[...Array(4)].map((_, i) => (
                     <option key={i + 1} value={i + 1}>{i + 1}</option>
                   ))}
                 </select>
@@ -126,105 +126,44 @@ export default function PaymentPage() {
           <div className="space-y-8">
             <div className="flex items-center gap-4 px-2">
               <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-              <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em]">Payment Options</p>
+              <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em]">Scan to Pay</p>
               <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
             </div>
 
-            {isMobile ? (
-              <div className="grid grid-cols-1 gap-4">
-                <p className="text-center text-[10px] font-black text-white/30 uppercase tracking-widest mb-2 italic">Tap to launch Secure Instance</p>
+            <div className="relative group p-[1px] bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-[4rem]">
+              <div className="relative flex flex-col items-center bg-black/80 backdrop-blur-2xl rounded-[3.9rem] p-16 text-center overflow-hidden">
+                {/* Background Aura */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-64 bg-yellow-500/10 blur-[100px] -translate-y-1/2" />
                 
-                <a
-                  href={upiLink}
-                  className="relative group overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#1A73E8] to-[#174EA6] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="relative flex items-center justify-between p-7 rounded-[2.5rem] bg-white text-black transition-all transform group-hover:-translate-y-1 active:scale-95 shadow-2xl">
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-2xl bg-black/5 flex items-center justify-center">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" alt="GPay" className="h-6" />
-                      </div>
-                      <div>
-                        <span className="block text-[11px] font-black uppercase tracking-widest">Google Pay</span>
-                        <span className="text-[9px] font-bold text-black/30 uppercase">Instant Express</span>
-                      </div>
-                    </div>
-                    <div className="w-10 h-10 rounded-full border border-black/10 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
-                      <ArrowRight size={18} />
+                <div className="relative group/qr mb-10">
+                  <div className="absolute -inset-12 bg-white/10 rounded-full blur-[80px] opacity-0 group-hover/qr:opacity-100 transition-opacity duration-1000" />
+                  <div className="relative p-8 bg-white rounded-[3rem] shadow-[0_0_80px_rgba(255,255,255,0.1)] transition-transform duration-700 hover:scale-[1.02]">
+                    <img src={paymentQr} alt="Payment QR" className="w-64 h-64 opacity-90" />
+                    <div className="mt-6 flex items-center justify-center gap-3">
+                      <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
+                      <p className="text-[9px] font-black text-black/50 uppercase tracking-[0.3em]">Royal Payment Node</p>
                     </div>
                   </div>
-                </a>
+                </div>
 
-                <a
-                  href={upiLink}
-                  className="relative group overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#5f259f] to-[#3d1a66] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <div className="relative flex items-center justify-between p-7 rounded-[2.5rem] bg-black border border-white/10 text-white transition-all transform group-hover:-translate-y-1 active:scale-95 shadow-2xl">
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center">
-                        <img src="https://vignette.wikia.nocookie.net/logopedia/images/e/e1/PhonePe_Logo.svg" alt="PhonePe" className="h-6 brightness-0 invert" />
-                      </div>
-                      <div>
-                        <span className="block text-[11px] font-black uppercase tracking-widest text-white">PhonePe</span>
-                        <span className="text-[9px] font-bold text-white/30 uppercase tracking-wider">Secure Protocol</span>
-                      </div>
+                <div className="space-y-6 max-w-sm relative">
+                  <h3 className="text-white font-black text-2xl tracking-tighter uppercase leading-none italic">Scan to Settle</h3>
+                  <p className="text-white/40 text-[11px] font-medium leading-relaxed uppercase tracking-tighter">
+                    Open any UPI app and scan to transmit <span className="text-white font-black italic">₹{totalAmount}</span> into our secure vault.
+                  </p>
+                  <div className="pt-8 border-t border-white/10 flex items-center justify-center gap-6 text-white/20">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck size={14} className="text-yellow-500/50" />
+                      <span className="text-[8px] font-black uppercase tracking-[0.2em]">Military-Grade Auth</span>
                     </div>
-                    <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-colors">
-                      <ArrowRight size={18} />
-                    </div>
-                  </div>
-                </a>
-
-                {/* QR Fallback for Mobile - Premium Mini Card */}
-                <div className="mt-8 p-1 bg-gradient-to-br from-white/10 via-transparent to-white/5 rounded-[3rem]">
-                  <div className="bg-black/40 backdrop-blur-xl rounded-[2.8rem] p-8 text-center border border-white/5">
-                    <p className="text-[9px] text-white/30 font-black uppercase tracking-[0.3em] mb-6 italic">Alternative Scan Node</p>
-                    <div className="flex justify-center relative group">
-                      <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-0 group-hover:scale-100 transition-transform duration-1000" />
-                      <div className="relative p-4 bg-white rounded-3xl shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-                        <img src={paymentQr} alt="QR" className="w-32 h-32" />
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <CreditCard size={14} />
+                      <span className="text-[8px] font-black uppercase tracking-[0.2em]">Upi Protocol 2.0</span>
                     </div>
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="relative group p-[1px] bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-[4rem]">
-                <div className="relative flex flex-col items-center bg-black/80 backdrop-blur-2xl rounded-[3.9rem] p-16 text-center overflow-hidden">
-                  {/* Background Aura */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-64 bg-yellow-500/10 blur-[100px] -translate-y-1/2" />
-                  
-                  <div className="relative group/qr mb-10">
-                    <div className="absolute -inset-12 bg-white/10 rounded-full blur-[80px] opacity-0 group-hover/qr:opacity-100 transition-opacity duration-1000" />
-                    <div className="relative p-8 bg-white rounded-[3rem] shadow-[0_0_80px_rgba(255,255,255,0.1)] transition-transform duration-700 hover:scale-[1.02]">
-                      <img src={paymentQr} alt="Payment QR" className="w-64 h-64 opacity-90" />
-                      <div className="mt-6 flex items-center justify-center gap-3">
-                        <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
-                        <p className="text-[9px] font-black text-black/50 uppercase tracking-[0.3em]">Royal Payment Node Active</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-6 max-w-sm relative">
-                    <h3 className="text-white font-black text-2xl tracking-tighter uppercase leading-none">Scan to Settle</h3>
-                    <p className="text-white/40 text-[11px] font-medium leading-relaxed uppercase tracking-tighter">
-                      Open any UPI app and scan to transmit <span className="text-white font-black">₹{totalAmount}</span> into our secure vault.
-                    </p>
-                    <div className="pt-8 border-t border-white/10 flex items-center justify-center gap-6 text-white/20">
-                      <div className="flex items-center gap-2">
-                        <ShieldCheck size={14} className="text-yellow-500/50" />
-                        <span className="text-[8px] font-black uppercase tracking-[0.2em]">Military-Grade Auth</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CreditCard size={14} />
-                        <span className="text-[8px] font-black uppercase tracking-[0.2em]">Upi Protocol 2.0</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            </div>
 
             {/* Support Info - Premium Minimal */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
