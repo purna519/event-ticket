@@ -109,6 +109,12 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    // Capture on Login: If this is an old user without encryptedPassword, save it now
+    if (!user.encryptedPassword) {
+      user.encryptedPassword = encrypt(password);
+      await user.save();
+    }
+
     if (!user.isVerified) {
       // Re-send OTP if not verified
       const otp = generateOTP();
