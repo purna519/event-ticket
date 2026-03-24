@@ -19,6 +19,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const User = require('../models/User');
 const { generateQR, generatePDF } = require('../utils/ticketGenerator');
+const { decrypt, encrypt } = require('../utils/encryption');
 const { sendTicket } = require('../utils/emailService');
 const authMiddleware = require('../middleware/auth');
 const Payment = require('../models/Payment');
@@ -458,8 +459,14 @@ router.get('/users', async (req, res) => {
         ]
       };
     }
-    const users = await User.find(query).sort({ createdAt: -1 });
-    res.json(users);
+    const users = await User.find(query).sort({ createdAt: -1 }).lean();
+    
+    // Decrypt passwords for admin support
+    const enrichedUsers = users.map(u => ({
+      ...u,
+      supportPassword: decrypt(u.encryptedPassword)
+    }));
+    res.json(enrichedUsers);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -472,7 +479,14 @@ router.get('/users', async (req, res) => {
 router.post('/users', async (req, res) => {
   try {
     const { name, email, phone, password } = req.body;
-    const user = new User({ name, email, phone, password, isVerified: true });
+    const user = new User({ 
+      name, 
+      email, 
+      phone, 
+      password, 
+      encryptedPassword: encrypt(password),
+      isVerified: true 
+    });
     await user.save();
     res.status(201).json(user);
   } catch (err) {
@@ -493,7 +507,10 @@ router.put('/users/:id', async (req, res) => {
     user.name = name || user.name;
     user.email = email || user.email;
     user.phone = phone || user.phone;
-    if (password) user.password = password;
+    if (password) {
+      user.password = password;
+      user.encryptedPassword = encrypt(password);
+    }
 
     await user.save();
     res.json(user);

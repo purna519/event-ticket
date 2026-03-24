@@ -7,6 +7,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { sendOTP } = require('../utils/emailService');
+const { encrypt } = require('../utils/encryption');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'member_secret_key';
 
@@ -46,6 +47,7 @@ router.post('/register', async (req, res) => {
       email,
       phone,
       password,
+      encryptedPassword: encrypt(password),
       otp,
       otpExpires,
     });
@@ -165,6 +167,7 @@ router.post('/reset-password', async (req, res) => {
     }
 
     user.password = newPassword;
+    user.encryptedPassword = encrypt(newPassword);
     user.otp = undefined;
     user.otpExpires = undefined;
     await user.save();

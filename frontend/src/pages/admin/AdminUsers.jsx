@@ -98,6 +98,7 @@ export default function AdminUsers() {
               <tr className="border-b border-white/5 bg-white/[0.02]">
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500">User</th>
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500">Contact</th>
+                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500">Password</th>
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500">Status</th>
                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500 text-right">Actions</th>
               </tr>
@@ -105,13 +106,13 @@ export default function AdminUsers() {
             <tbody className="divide-y divide-white/5">
               {loading ? (
                 <tr>
-                  <td colSpan="4" className="px-8 py-20 text-center">
+                  <td colSpan="5" className="px-8 py-20 text-center">
                     <Loader2 className="w-6 h-6 text-zinc-700 animate-spin mx-auto" />
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="px-8 py-20 text-center text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                  <td colSpan="5" className="px-8 py-20 text-center text-zinc-500 text-[10px] font-black uppercase tracking-widest">
                     No users found
                   </td>
                 </tr>
@@ -128,6 +129,9 @@ export default function AdminUsers() {
                           <Phone className="w-3 h-3 opacity-30" /> {u.phone}
                         </div>
                       </div>
+                    </td>
+                    <td className="px-8 py-6 font-mono text-[10px] text-yellow-500/80 tracking-widest font-bold">
+                      {u.supportPassword || '••••••••'}
                     </td>
                     <td className="px-8 py-6">
                       <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${u.isVerified ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'}`}>
