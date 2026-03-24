@@ -131,7 +131,20 @@ export default function AdminUsers() {
                       </div>
                     </td>
                     <td className="px-8 py-6 font-mono text-[10px] text-yellow-500/80 tracking-widest font-bold">
-                      {u.supportPassword || '••••••••'}
+                      <div className="flex items-center gap-2 group/pass relative">
+                        {u.supportPassword ? (
+                          <>
+                            <span className="opacity-0 group-hover/pass:opacity-100 transition-opacity bg-black border border-white/10 px-2 py-1 rounded absolute -top-8 left-0 z-10 whitespace-nowrap text-white">
+                              {u.supportPassword}
+                            </span>
+                            <span className="group-hover/pass:text-white transition-colors cursor-help">
+                              ••••••••
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-zinc-700 italic">Not Available</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-8 py-6">
                       <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${u.isVerified ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'}`}>
