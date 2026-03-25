@@ -85,22 +85,31 @@ async function seedAdminAndEvent() {
     );
   }
 
-  // Create event if none exists
-  const existingEvent = await Event.findOne({});
-  if (!existingEvent) {
-    await Event.create({
-      name: process.env.EVENT_NAME || 'The Music Society - Bhajan Jamming Experience',
-      date: process.env.EVENT_DATE || '2026-03-26',
-      time: process.env.EVENT_TIME || '5:30 PM - 9:30 PM',
-      venue: process.env.EVENT_VENUE || 'Dinkit Pickleball Court, Gurunanak Colony',
-      description:
-        process.env.EVENT_DESCRIPTION ||
-        'Sri Rama Navami Special. Episode 3. Join the Jam.',
-      price: parseInt(process.env.TICKET_PRICE || '499'),
-      upiId: process.env.UPI_ID || 'yourname@upi',
-      upiName: process.env.UPI_NAME || 'The Music Society',
-      upiNote: process.env.UPI_NOTE || 'BhajanJamTicket',
-    });
+  // Create or update event
+  let event = await Event.findOne({});
+  const eventData = {
+    name: process.env.EVENT_NAME || 'The Music Society - Bhajan Jamming Experience',
+    date: process.env.EVENT_DATE || '2026-03-26',
+    time: process.env.EVENT_TIME || '5:30 PM - 9:30 PM',
+    venue: process.env.EVENT_VENUE || 'Dinkit Pickleball Court, Gurunanak Colony',
+    description:
+      process.env.EVENT_DESCRIPTION ||
+      'Sri Rama Navami Special. Episode 3. Join the Jam.',
+    price: parseInt(process.env.TICKET_PRICE || '499'),
+    upiId: process.env.UPI_ID || 'q840550651@ybl',
+    upiName: process.env.UPI_NAME || 'The Music Society',
+    upiNote: process.env.UPI_NOTE || 'BhajanJamTicket',
+  };
+
+  if (!event) {
+    await Event.create(eventData);
     console.log('🎫 Default event created');
+  } else {
+    // Force update UPI details if they don't match the environment
+    if (event.upiId !== eventData.upiId) {
+      Object.assign(event, eventData);
+      await event.save();
+      console.log('🎫 Event UPI details updated from environment');
+    }
   }
 }
