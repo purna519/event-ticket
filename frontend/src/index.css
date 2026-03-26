@@ -31,7 +31,7 @@
 
   /* ── Card ──────────────────────────────────────────────────────────── */
   .card {
-    @apply bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-3xl p-8 shadow-[0_8px_32px_0_rgba(0, 0, 0, 0.8)] transition-all duration-300;
+    @apply bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-3xl p-8 shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] transition-all duration-300;
   }
 
   /* ── Primary Button ────────────────────────────────────────────────── */
