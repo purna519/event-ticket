@@ -106,14 +106,14 @@ router.get('/stats', async (req, res) => {
 
     const event = await Event.findOne({}).lean();
     const totalCapacity = event?.totalCapacity || 150;
+    const currentPrice = event?.price || 499;
+
+    // Calculate total revenue from verified tickets
+    const totalRevenue = totalTickets * currentPrice;
 
     // Calculate TRULY reserved tickets (sum of quantity for verified/pending)
     const allReserved = await Booking.find({ status: { $in: ['verified', 'pending'] } }).select('quantity');
     const reservedTickets = allReserved.reduce((sum, b) => sum + (b.quantity || 1), 0);
-
-    // Calculate total revenue from matched payments
-    const matchedPayments = await Payment.find({ used: true }).select('amount');
-    const totalRevenue = matchedPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
 
     res.json({
       totalBookings,
