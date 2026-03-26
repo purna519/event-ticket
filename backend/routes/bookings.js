@@ -37,12 +37,16 @@ router.post('/initiate', userAuth, async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Check Capacity (150 Tickets Limit)
+    // Check Capacity
+    const event = await Event.findOne({}).lean();
+    if (!event) return res.status(500).json({ error: 'Event not configured' });
+    const capacity = event.totalCapacity || 150;
+
     const allBookings = await Booking.find({ status: { $in: ['verified', 'pending'] } }).lean();
     const totalReserved = allBookings.reduce((sum, b) => sum + (b.quantity || 1), 0);
     const requestedQty = parseInt(quantity) || 1;
     
-    if (totalReserved + requestedQty > 150) {
+    if (totalReserved + requestedQty > capacity) {
       return res.status(403).json({ error: 'Event Capacity Reached' });
     }
 

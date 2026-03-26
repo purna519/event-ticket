@@ -224,12 +224,22 @@ export default function EventPage() {
             </div>
           )}
 
-          <button
-            onClick={() => navigate('/pay')}
-            className="btn-primary py-6 text-xs font-black uppercase tracking-[0.4em] group"
-          >
-            Book Now <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
-          </button>
+          {event.reservedTickets >= (event.totalCapacity || 150) ? (
+            <div className="w-full bg-red-500/10 border border-red-500/20 rounded-[2.5rem] py-8 text-center flex flex-col items-center gap-3">
+              <p className="text-red-500 text-sm font-black uppercase tracking-[0.5em] italic">SOLD OUT</p>
+              <p className="text-white/30 text-[10px] uppercase font-bold tracking-widest leading-relaxed">
+                All tickets for this session have been reserved.<br />
+                Please keep checking for cancellations.
+              </p>
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate('/pay')}
+              className="btn-primary py-6 text-xs font-black uppercase tracking-[0.4em] group"
+            >
+              Book Now <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
+            </button>
+          )}
 
           <p className="flex items-center justify-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-widest">
             <ShieldCheck size={14} /> End-to-End Encrypted Verification

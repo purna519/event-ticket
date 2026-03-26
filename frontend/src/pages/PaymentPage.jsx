@@ -112,12 +112,19 @@ export default function PaymentPage() {
                       onChange={(e) => setQuantity(Number(e.target.value))}
                       className="bg-black text-white font-black text-base px-8 py-4 rounded-2xl border border-white/10 focus:outline-none focus:border-yellow-500/50 transition-all cursor-pointer hover:bg-white/5"
                     >
-                      {[1, 2, 3, 4].map(num => (
-                        <option key={num} value={num}>{num}</option>
-                      ))}
+                      {[1, 2, 3, 4].map(num => {
+                        const remaining = (event.totalCapacity || 150) - (event.reservedTickets || 0);
+                        if (num > remaining && num > 1) return null;
+                        return <option key={num} value={num}>{num}</option>;
+                      })}
                     </select>
                   </div>
                 </div>
+                {(event.totalCapacity || 150) - (event.reservedTickets || 0) <= 10 && (
+                  <p className="text-[10px] text-yellow-500/60 font-black uppercase tracking-widest text-center mt-4">
+                    Only {(event.totalCapacity || 150) - (event.reservedTickets || 0)} spots remaining!
+                  </p>
+                )}
               </div>
 
               <button

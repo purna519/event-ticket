@@ -96,6 +96,7 @@ async function seedAdminAndEvent() {
       process.env.EVENT_DESCRIPTION ||
       'Sri Rama Navami Special. Episode 3. Join the Jam.',
     price: parseInt(process.env.TICKET_PRICE || '499'),
+    totalCapacity: parseInt(process.env.TOTAL_CAPACITY || '150'),
     upiId: process.env.UPI_ID || 'q840550651@ybl',
     upiName: process.env.UPI_NAME || 'The Music Society',
     upiNote: process.env.UPI_NOTE || 'BhajanJamTicket',

@@ -13,6 +13,7 @@ const eventSchema = new mongoose.Schema(
     locationUrl: { type: String, default: '' },
     description: { type: String, default: '' },
     price: { type: Number, required: true },  // ticket price in INR
+    totalCapacity: { type: Number, default: 150 }, // Max tickets allowed
     upiId: { type: String, required: true },  // e.g. yourname@upi
     upiName: { type: String, required: true },
     upiNote: { type: String, default: 'TicketPayment' },

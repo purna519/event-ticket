@@ -8,7 +8,7 @@ import api from '../../api';
 
 export default function AdminEvent() {
   const [form, setForm] = useState({
-    name: '', date: '', time: '', venue: '', description: '', price: '', upiId: '', upiName: '', upiNote: '',
+    name: '', date: '', time: '', venue: '', description: '', price: '', totalCapacity: '', upiId: '', upiName: '', upiNote: '',
     benefits: [], supportNumber: '', sponsors: []
   });
   const [loading, setLoading] = useState(true);
@@ -162,6 +162,16 @@ export default function AdminEvent() {
               value={form.price || ''}
               onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
               placeholder="499"
+              className="input"
+            />
+          </div>
+          <div>
+            <label className="input-label">Event Capacity (Total Tickets)</label>
+            <input
+              type="number"
+              value={form.totalCapacity || ''}
+              onChange={(e) => setForm((p) => ({ ...p, totalCapacity: e.target.value }))}
+              placeholder="150"
               className="input"
             />
           </div>
