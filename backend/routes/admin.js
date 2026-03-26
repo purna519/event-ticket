@@ -350,15 +350,29 @@ router.put('/event', async (req, res) => {
 });
 
 // ── POST /api/admin/verify-ticket ─────────────────────────────────────────────
-// FETCH booking details for a ticket ID without automatically marking as scanned
+// FETCH booking details for a ticket ID (handles both raw IDs and pipe-separated QR data)
 router.post('/verify-ticket', async (req, res) => {
   try {
-    const { ticketId } = req.body;
+    let { ticketId } = req.body;
     if (!ticketId) return res.status(400).json({ error: 'Ticket ID is required' });
 
-    // Find the booking that contains this ticketId
+    console.log('Verifying Scan Input:', ticketId);
+
+    // 1. Check if it's the structured format (UTR:xxx|TKT:xxx|QTY:x)
+    if (ticketId.includes('|')) {
+      const parts = ticketId.split('|');
+      const tktPart = parts.find(p => p.startsWith('TKT:'));
+      if (tktPart) {
+        ticketId = tktPart.replace('TKT:', '');
+      }
+    }
+
+    // 2. Find the booking that contains this ticketId
     const booking = await Booking.findOne({ 'tickets.ticketId': ticketId }).lean();
-    if (!booking) return res.status(404).json({ error: 'Invalid Ticket ID' });
+    if (!booking) {
+      console.log('Ticket not found in DB:', ticketId);
+      return res.status(404).json({ error: 'Invalid or Unknown Ticket' });
+    }
 
     // Find the specific ticket to identify the entry point
     const ticket = booking.tickets.find(t => t.ticketId === ticketId);

@@ -13,51 +13,67 @@ export default function AdminScanner() {
   const [loading, setLoading] = useState(false);
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [selectedTickets, setSelectedTickets] = useState([]);
+  const [isScanning, setIsScanning] = useState(true);
   const scannerRef = useRef(null);
 
   useEffect(() => {
-    const scanner = new Html5QrcodeScanner('reader', {
+    if (isScanning && !scannerRef.current) {
+        initScanner();
+    }
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(err => console.error("Unmount clear fail", err));
+        scannerRef.current = null;
+      }
+    };
+  }, [isScanning]);
+
+  function initScanner() {
+     const scanner = new Html5QrcodeScanner('reader', {
       fps: 10,
       qrbox: { width: 250, height: 250 },
       aspectRatio: 1.0,
     });
-
     scanner.render(onScanSuccess, onScanFailure);
     scannerRef.current = scanner;
-
-    return () => {
-      scanner.clear().catch(err => console.error("Failed to clear scanner", err));
-    };
-  }, []);
+  }
 
   async function onScanSuccess(decodedText) {
-    if (loading || checkInLoading || result) return;
+    if (loading || checkInLoading || !isScanning) return;
     
-    // Clean input and log it
+    // STOP SCANNING IMMEDIATELY
+    setIsScanning(false);
+    if (scannerRef.current) {
+        await scannerRef.current.clear();
+        scannerRef.current = null;
+    }
+
     const ticketIdClean = decodedText?.trim();
     console.log("Processing Scan:", ticketIdClean);
     
     setLoading(true);
     setResult(null);
     setError(null);
-    setSelectedTickets([]); // Reset selection
+    setSelectedTickets([]);
 
     try {
       const { data } = await api.post('/admin/verify-ticket', { ticketId: ticketIdClean });
       setResult(data);
-      // Automatically pre-select the scanned ticket if not already scanned
-      const scannedTicket = data.tickets.find(t => t.ticketId === ticketIdClean);
-      if (scannedTicket && !scannedTicket.scanned) {
-        setSelectedTickets([decodedText]);
+      
+      // Auto-select the scanned ticket if it exists in the returned list
+      let actualTicketId = ticketIdClean;
+      if (ticketIdClean.includes('|')) {
+         const match = ticketIdClean.split('|').find(p => p.startsWith('TKT:'));
+         if (match) actualTicketId = match.replace('TKT:', '');
+      }
+
+      const foundTicket = data.tickets.find(t => t.ticketId === actualTicketId);
+      if (foundTicket && !foundTicket.scanned) {
+        setSelectedTickets([actualTicketId]);
       }
     } catch (err) {
       const msg = err.response?.data?.error || 'Invalid or Corrupt QR';
-      setError({
-        msg,
-        holder: err.response?.data?.holder,
-        scannedAt: err.response?.data?.scannedAt
-      });
-      setTimeout(() => setError(null), 8000);
+      setError({ msg });
     } finally {
       setLoading(false);
     }
@@ -70,12 +86,7 @@ export default function AdminScanner() {
     setCheckInLoading(true);
     try {
       await api.post(`/admin/bookings/${result.bookingId}/check-in`, { ticketIds: selectedTickets });
-      // Show success briefly then reset for next scan
       setResult({ ...result, successMessage: 'Check-in Successful!' });
-      setTimeout(() => {
-        setResult(null);
-        setSelectedTickets([]);
-      }, 3000);
     } catch (err) {
       alert(err.response?.data?.error || 'Check-in failed');
     } finally {
@@ -89,6 +100,13 @@ export default function AdminScanner() {
     );
   };
 
+  const handleNextScan = () => {
+     setResult(null);
+     setError(null);
+     setSelectedTickets([]);
+     setIsScanning(true);
+  };
+
   return (
     <div className="max-w-xl mx-auto py-8">
       <div className="mb-12 text-center lg:text-left px-4">
@@ -98,7 +116,7 @@ export default function AdminScanner() {
 
       <div className="space-y-8 px-4">
         {/* Scanner Container */}
-        {!result && (
+        {isScanning && (
           <div className="card !p-2 bg-black border-white/10 overflow-hidden relative group">
             <div id="reader" className="w-full h-auto rounded-2xl overflow-hidden" />
           </div>
@@ -123,7 +141,9 @@ export default function AdminScanner() {
                     <CheckCircle size={32} />
                  </div>
                  <p className="text-white font-black text-2xl uppercase tracking-tighter">{result.successMessage}</p>
-                 <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest mt-2 tracking-[0.2em]">Ready for next scan...</p>
+                 <button onClick={handleNextScan} className="mt-8 px-10 py-4 bg-white text-black font-black uppercase text-[10px] tracking-widest rounded-full hover:bg-zinc-200">
+                    Scan Next Ticket
+                 </button>
               </div>
             ) : (
               <>
@@ -139,7 +159,7 @@ export default function AdminScanner() {
                       </p>
                     </div>
                   </div>
-                  <button onClick={() => setResult(null)} className="text-white/20 hover:text-white/40 transition-colors">
+                  <button onClick={handleNextScan} className="text-white/20 hover:text-white/40 transition-colors">
                     <XCircle size={18} />
                   </button>
                 </div>
@@ -184,17 +204,22 @@ export default function AdminScanner() {
                   ))}
                 </div>
 
-                <button
-                  disabled={selectedTickets.length === 0 || checkInLoading}
-                  onClick={handleCheckIn}
-                  className={`w-full py-6 rounded-[2rem] font-black text-[11px] uppercase tracking-[0.4em] transition-all relative overflow-hidden group ${
-                    selectedTickets.length > 0 
-                      ? 'bg-white text-black hover:bg-zinc-200' 
-                      : 'bg-white/5 text-white/10 cursor-not-allowed'
-                  }`}
-                >
-                  {checkInLoading ? 'Processing...' : `Confirm Check-in (${selectedTickets.length} People)`}
-                </button>
+                <div className="flex flex-col gap-3">
+                  <button
+                    disabled={selectedTickets.length === 0 || checkInLoading}
+                    onClick={handleCheckIn}
+                    className={`w-full py-6 rounded-[2rem] font-black text-[11px] uppercase tracking-[0.4em] transition-all relative overflow-hidden group ${
+                      selectedTickets.length > 0 
+                        ? 'bg-white text-black hover:bg-zinc-200' 
+                        : 'bg-white/5 text-white/10 cursor-not-allowed'
+                    }`}
+                  >
+                    {checkInLoading ? 'Processing...' : `Confirm Check-in (${selectedTickets.length} People)`}
+                  </button>
+                  <button onClick={handleNextScan} className="w-full py-4 text-white/20 hover:text-white/40 text-[9px] font-black uppercase tracking-widest transition-colors">
+                    Cancel & Scan Another
+                  </button>
+                </div>
               </>
             )}
           </div>
@@ -202,20 +227,28 @@ export default function AdminScanner() {
 
         {/* Error State */}
         {error && (
-          <div className="card border-red-500/20 bg-red-500/5 animate-shake !p-8">
-             <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center text-red-500">
-                <XCircle size={24} />
-              </div>
-              <div>
-                <p className="text-red-500 text-xs font-black uppercase tracking-widest">Verification Denied</p>
-                <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest mt-1">{error.msg}</p>
-              </div>
-            </div>
+          <div className="card border-red-500/20 bg-red-500/5 animate-shake !p-8 text-center">
+             <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center text-red-500 mx-auto mb-6">
+               <XCircle size={24} />
+             </div>
+             <p className="text-red-500 text-xs font-black uppercase tracking-widest mb-2">Verification Denied</p>
+             <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest mb-8">{error.msg}</p>
+             
+             <button onClick={handleNextScan} className="w-full py-4 bg-white/5 border border-white/10 rounded-full text-white font-black uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all">
+                Try Again / New Scan
+             </button>
           </div>
         )}
 
-        {!result && !error && !loading && (
+        {!result && !error && !loading && !isScanning && (
+           <div className="text-center">
+              <button onClick={handleNextScan} className="px-10 py-5 bg-white text-black rounded-full font-black uppercase text-xs tracking-widest shadow-2xl hover:scale-105 transition-all">
+                Start New Scan
+              </button>
+           </div>
+        )}
+
+        {isScanning && (
           <div className="card text-center !p-12 border-white/5 bg-white/[0.01]">
              <QrCode size={48} className="text-white/10 mx-auto mb-6 opacity-40 animate-pulse-slow" />
              <p className="text-white/30 text-[10px] font-black uppercase tracking-widest">Awaiting QR Signature...</p>
