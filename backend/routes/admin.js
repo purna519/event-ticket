@@ -368,11 +368,34 @@ router.post('/verify-ticket', async (req, res) => {
     }
 
     // 2. Find the booking that contains this ticketId
-    const booking = await Booking.findOne({ 'tickets.ticketId': ticketId }).lean();
+    let booking = await Booking.findOne({ 'tickets.ticketId': ticketId });
     if (!booking) {
       console.log('Ticket not found in DB:', ticketId);
       return res.status(404).json({ error: 'Invalid or Unknown Ticket' });
     }
+
+    // ── AUTO-FIX: Ensure tickets array matches quantity (for legacy/missing data) ──
+    const qty = booking.quantity || 1;
+    if (booking.tickets.length < qty) {
+      console.log(`Auto-fixing tickets for Booking ${booking._id}: Current ${booking.tickets.length}, Expected ${qty}`);
+      
+      // Preserve existing tickets and add missing ones
+      const existingIds = booking.tickets.map(t => t.ticketId);
+      for (let i = booking.tickets.length; i < qty; i++) {
+        let newId;
+        do {
+          newId = 'TKT-' + uuidv4().split('-')[0].toUpperCase() + (qty > 1 ? `-${i+1}` : '');
+        } while (existingIds.includes(newId));
+        
+        booking.tickets.push({
+          ticketId: newId,
+          scanned: false
+        });
+        existingIds.push(newId);
+      }
+      await booking.save();
+    }
+    // ──────────────────────────────────────────────────────────────────────────────
 
     // Find the specific ticket to identify the entry point
     const ticket = booking.tickets.find(t => t.ticketId === ticketId);
