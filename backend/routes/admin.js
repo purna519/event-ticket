@@ -299,30 +299,39 @@ router.patch('/bookings/:id/reject', async (req, res) => {
 router.put('/event', async (req, res) => {
   try {
     const { name, date, time, venue, locationUrl, description, price, totalCapacity, upiId, upiName, upiNote, supportNumber, benefits, sponsors } = req.body;
-    const event = await Event.findOne({});
-    if (!event) return res.status(404).json({ error: 'No event found' });
+    
+    // Find the first event or create if none (should exist from seed)
+    let event = await Event.findOne({});
+    if (!event) {
+      event = new Event({});
+    }
 
     Object.assign(event, {
-      ...(name && { name }),
-      ...(date && { date }),
-      ...(time && { time }),
-      ...(venue && { venue }),
+      ...(name !== undefined && { name }),
+      ...(date !== undefined && { date }),
+      ...(time !== undefined && { time }),
+      ...(venue !== undefined && { venue }),
       ...(locationUrl !== undefined && { locationUrl }),
       ...(description !== undefined && { description }),
-      ...(price && { price: parseFloat(price) }),
-      ...(totalCapacity && { totalCapacity: parseInt(totalCapacity) }),
-      ...(upiId && { upiId }),
-      ...(upiName && { upiName }),
-      ...(upiNote && { upiNote }),
-      ...(supportNumber && { supportNumber }),
+      ...(price !== undefined && { price: parseFloat(price) }),
+      ...(totalCapacity !== undefined && { totalCapacity: parseInt(totalCapacity) }),
+      ...(upiId !== undefined && { upiId }),
+      ...(upiName !== undefined && { upiName }),
+      ...(upiNote !== undefined && { upiNote }),
+      ...(supportNumber !== undefined && { supportNumber }),
       ...(benefits !== undefined && { benefits }),
       ...(sponsors !== undefined && { sponsors }),
     });
+    
     await event.save();
 
-    res.json({ message: 'Event updated', event });
+    // CRITICAL: Delete any other event documents that might be causing confusion
+    await Event.deleteMany({ _id: { $ne: event._id } });
+
+    res.json({ message: 'Event updated successfully and database cleaned', event });
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Update event error:', err);
+    res.status(500).json({ error: 'Server error: ' + err.message });
   }
 });
 

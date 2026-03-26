@@ -5,6 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const Booking = require('../models/Booking');
+const Event = require('../models/Event');
 
 /**
  * GET /api/events/current
