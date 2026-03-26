@@ -224,11 +224,26 @@ export default function EventPage() {
             </div>
           )}
 
+          {/* Sold Out Banner */}
+          {event && event.totalCapacity <= event.reservedTickets && (
+            <div className="mb-12 p-8 rounded-[2rem] bg-yellow-500/5 border border-yellow-500/20 text-center animate-pulse">
+              <p className="text-yellow-500 text-sm font-black uppercase tracking-[0.2em] italic">
+                🚀 Overwhelming Response!
+              </p>
+              <p className="text-white/60 text-[11px] mt-2 font-bold uppercase tracking-widest leading-relaxed">
+                All tickets are currently sold out. thank you for the love!
+              </p>
+            </div>
+          )}
+
           <button
             onClick={() => navigate('/pay')}
-            className="btn-primary py-6 text-xs font-black uppercase tracking-[0.4em] group"
+            disabled={event && event.totalCapacity <= event.reservedTickets}
+            className={`btn-primary py-6 text-xs font-black uppercase tracking-[0.4em] group ${event && event.totalCapacity <= event.reservedTickets ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
           >
-            Book Now <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
+            {event && event.totalCapacity <= event.reservedTickets ? 'SOLD OUT - THANK YOU' : (
+              <>Book Now <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" /></>
+            )}
           </button>
 
           <p className="flex items-center justify-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-widest">

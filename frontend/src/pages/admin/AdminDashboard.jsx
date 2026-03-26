@@ -19,11 +19,11 @@ export default function AdminDashboard() {
 
   const cards = stats
     ? [
+        { icon: CreditCard, label: 'Total Revenue', value: `₹${(stats.totalRevenue || 0).toLocaleString('en-IN')}`, color: 'border-yellow-500/20 text-yellow-500 bg-yellow-500/5 shadow-2xl shadow-yellow-500/5' },
         { icon: Users, label: 'Available Tickets', value: Math.max(0, (stats.totalCapacity || 150) - stats.reservedTickets), color: 'border-white text-white bg-white/5 shadow-2xl shadow-white/5' },
         { icon: Ticket, label: 'Tickets Issued', value: stats.totalTickets, color: 'border-white/10 text-white/60' },
         { icon: QrCode, label: 'Checked In', value: stats.scannedTickets, color: 'border-green-500/10 text-green-500' },
         { icon: Clock, label: 'Pending Bookings', value: stats.pending, color: 'border-white/5 text-white/40' },
-        { icon: CreditCard, label: 'Payments', value: stats.totalPayments, color: 'border-white/5' },
         { icon: CheckCircle, label: 'Verified Bookings', value: stats.verified, color: 'border-white/5' },
       ]
     : [];

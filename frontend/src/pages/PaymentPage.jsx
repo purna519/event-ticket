@@ -43,13 +43,16 @@ export default function PaymentPage() {
     }
   }, [event, quantity]);
 
+  const [msg, setMsg] = useState('');
+
   const handlePaymentDone = async () => {
     setSubmitting(true);
+    setMsg('');
     try {
       await api.post('/bookings/initiate', { quantity });
       navigate('/history');
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to initiate booking');
+      setMsg(err.response?.data?.error || 'Failed to initiate booking');
     } finally {
       setSubmitting(false);
     }
@@ -97,6 +100,21 @@ export default function PaymentPage() {
               <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-white/5 to-transparent rounded-[2.5rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
                 <div className="relative card !p-10 bg-black/60 border-white/10 flex flex-col md:flex-row items-center justify-between gap-10 overflow-hidden backdrop-blur-xl">
+                  {/* Availability Warning */}
+                  {event && quantity > (event.totalCapacity - event.reservedTickets) && (
+                    <div className="absolute inset-0 bg-red-500/10 backdrop-blur-md flex items-center justify-center p-8 z-10 text-center border border-red-500/20">
+                      <div>
+                        <p className="text-red-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">Capacity Alert</p>
+                        <p className="text-white text-sm font-bold uppercase tracking-tight">
+                          Only {Math.max(0, event.totalCapacity - event.reservedTickets)} Tickets Remaining
+                        </p>
+                        <p className="text-white/40 text-[9px] mt-2 uppercase font-black tracking-widest underline cursor-pointer" onClick={() => setQuantity(Math.max(1, event.totalCapacity - event.reservedTickets))}>
+                          Adjust to max available
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex-1">
                     <p className="text-[9px] font-black text-yellow-500/40 uppercase tracking-[0.3em] mb-2">Total Amount</p>
                     <div className="flex items-baseline gap-2">
@@ -121,8 +139,12 @@ export default function PaymentPage() {
               </div>
 
               <button
-                onClick={() => setPhase(2)}
-                className="w-full relative group overflow-hidden rounded-[2.5rem]"
+                onClick={() => {
+                  if (event && quantity > (event.totalCapacity - event.reservedTickets)) return;
+                  setPhase(2);
+                }}
+                disabled={event && quantity > (event.totalCapacity - event.reservedTickets)}
+                className={`w-full relative group overflow-hidden rounded-[2.5rem] ${event && quantity > (event.totalCapacity - event.reservedTickets) ? 'opacity-20 cursor-not-allowed' : ''}`}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-600 to-yellow-400 group-hover:scale-105 transition-transform duration-500" />
                 <div className="relative py-7 px-10 text-[11px] font-black uppercase tracking-[0.5em] text-black text-center font-bold">
@@ -184,6 +206,12 @@ export default function PaymentPage() {
                     {submitting ? 'PROCESSING...' : 'Click here after payment is completed'}
                   </div>
                 </button>
+
+                {msg && (
+                  <div className="p-5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest text-center">
+                    {msg}
+                  </div>
+                )}
 
                 <button
                   onClick={() => setPhase(1)}
