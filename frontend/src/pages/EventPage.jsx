@@ -224,29 +224,95 @@ export default function EventPage() {
             </div>
           )}
 
-          {/* Sold Out Banner */}
-          {event && event.totalCapacity <= event.reservedTickets && (
-            <div className="mb-12 p-8 rounded-[2rem] bg-yellow-500/5 border border-yellow-500/20 text-center animate-pulse">
-              <p className="text-yellow-500 text-sm font-black uppercase tracking-[0.2em] italic">
-                🚀 Overwhelming Response!
-              </p>
-              <p className="text-white/60 text-[11px] mt-2 font-bold uppercase tracking-widest leading-relaxed">
-                All tickets are currently sold out. thank you for the love!
-              </p>
+          {/* Sold Out / Premium Transition */}
+          {event && event.totalCapacity <= event.reservedTickets ? (
+            <div className="space-y-24 mt-20">
+              {/* Stars Overlay */}
+              <div className="stars-overlay"></div>
+
+              {/* Jumping Rama Warrior */}
+              <div className="divine-anim-layer">
+                <div className="rama-warrior-anim">
+                  <svg viewBox="0 0 300 300" style={{ width: '100%', height: '100%' }}>
+                    <path d="M100,20 C40,20 20,100 20,150 C20,200 40,280 100,280" fill="none" stroke="gold" strokeWidth="8" />
+                    <path d="M100,20 L100,280" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                    <path d="M120,80 L140,40 C140,40 160,30 150,60 L140,80 L180,120 L160,180 L100,220 L80,180 L100,120 Z" fill="rgba(212, 175, 55, 0.8)" />
+                    <circle cx="150" cy="50" r="12" fill="rgba(212, 175, 55, 0.8)" />
+                  </svg>
+                  <div className="divine-arrow-shot">
+                    <div className="arrow-divine-trail"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Premium Sold Out Banner */}
+              <div className="relative text-center animate-slide-up">
+                <div className="inline-block p-1 bg-gradient-to-r from-yellow-500/50 via-white/20 to-yellow-500/50 rounded-[3rem] mb-6">
+                  <div className="bg-black py-4 px-10 rounded-[2.9rem]">
+                    <p className="text-yellow-500 text-sm font-black uppercase tracking-[0.5em] italic">Tickets All Sold Out</p>
+                  </div>
+                </div>
+                
+                <h2 className="text-5xl font-black text-white tracking-tighter uppercase mb-6 drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                  The Divine Union <span className="text-white/20">Awaits</span>
+                </h2>
+
+                <div className="flex justify-center gap-6 mt-10">
+                  {user ? (
+                    <div className="text-center p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5 backdrop-blur-xl">
+                      <p className="text-white font-black text-2xl tracking-tighter uppercase mb-2">🌼 We all meet at Bhajan Jamming</p>
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">Let’s sing & celebrate together</p>
+                    </div>
+                  ) : (
+                    <div className="text-center p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5 backdrop-blur-xl">
+                      <p className="text-white font-black text-2xl tracking-tighter uppercase mb-2">🙏 Stay tuned for the next Gathering</p>
+                      <p className="text-white/40 text-[10px] font-bold uppercase tracking-[0.3em]">Your presence will be awaited</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Divine Union Scroll Section */}
+              <div 
+                className="card !p-16 border-yellow-500/20 bg-yellow-500/5 text-center transition-all duration-1000"
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
+                <h3 className="text-4xl font-black text-white tracking-tighter uppercase mb-4">The Celestial Assembly</h3>
+                <p className="text-white/60 text-sm leading-relaxed max-w-xl mx-auto italic font-medium">
+                  "As the arrow finds its mark, the heart finds its devotion. 
+                  Witness the celestial assembly as the universe celebrates the Eternal Pair."
+                </p>
+                <div className="flex justify-center gap-6 mt-10 text-3xl opacity-60">
+                  <span className="animate-bounce" style={{ animationDelay: '0s' }}>🪷</span>
+                  <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>🌸</span>
+                  <span className="animate-bounce" style={{ animationDelay: '0.4s' }}>✨</span>
+                  <span className="animate-bounce" style={{ animationDelay: '0.6s' }}>🕉️</span>
+                </div>
+              </div>
+
+              {/* Parchment Info */}
+              <div className="card !p-12 bg-[#f4e4bc] text-[#5c1a1a] border-none shadow-[20px_20px_60px_rgba(0,0,0,0.5)]">
+                <h4 className="text-3xl font-black uppercase tracking-tighter mb-4">Event Details</h4>
+                <div className="space-y-2 font-bold uppercase tracking-widest text-[11px]">
+                  <p>📅 Friday, 27 March | 6:30 PM</p>
+                  <p>📍 Dinkit Pickleball Court, Hyderabad</p>
+                  <p className="mt-6 pt-6 border-t border-[#5c1a1a]/10">Access Community Playlist Below</p>
+                </div>
+              </div>
             </div>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate('/pay')}
+                className="btn-primary py-6 text-xs font-black uppercase tracking-[0.4em] group"
+              >
+                Book Now <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
+              </button>
+            </>
           )}
 
-          <button
-            onClick={() => navigate('/pay')}
-            disabled={event && event.totalCapacity <= event.reservedTickets}
-            className={`btn-primary py-6 text-xs font-black uppercase tracking-[0.4em] group ${event && event.totalCapacity <= event.reservedTickets ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
-          >
-            {event && event.totalCapacity <= event.reservedTickets ? 'SOLD OUT - THANK YOU' : (
-              <>Book Now <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-500" /></>
-            )}
-          </button>
-
-          <p className="flex items-center justify-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-widest">
+          <p className="flex items-center justify-center gap-2 text-[10px] font-black text-white/20 uppercase tracking-widest pt-12">
             <ShieldCheck size={14} /> End-to-End Encrypted Verification
           </p>
         </div>

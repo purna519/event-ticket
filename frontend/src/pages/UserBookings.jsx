@@ -9,7 +9,7 @@ export default function UserBookings() {
 
   useEffect(() => {
     fetchBookings();
-    
+
     // Auto-reload every 10 seconds to catch status updates
     const interval = setInterval(fetchBookings, 10000);
     return () => clearInterval(interval);
@@ -59,8 +59,8 @@ export default function UserBookings() {
             <ArrowLeft className="w-6 h-6 text-zinc-500 group-hover:text-white" />
           </Link>
           <div className="text-center">
-             <h1 className="text-4xl font-black tracking-tighter uppercase italic">Booking History</h1>
-             <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mt-1">Manage your event access</p>
+            <h1 className="text-4xl font-black tracking-tighter uppercase italic">Booking History</h1>
+            <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mt-1">Manage your event access</p>
           </div>
           <div className="w-10"></div>
         </div>
@@ -71,9 +71,9 @@ export default function UserBookings() {
             <Info className="w-4 h-4 text-white" />
           </div>
           <p className="text-zinc-400 text-xs font-bold leading-relaxed uppercase tracking-tight">
-             Your tickets will be approved within <span className="text-white">10 minutes</span>. 
-             Once verified, you'll receive the PDF in your <span className="text-white">Email</span> 
-             and can also download it directly below.
+            Your tickets will be approved within <span className="text-white">10 minutes</span>.
+            Once verified, you'll receive the PDF in your <span className="text-white">Email</span>
+            and can also download it directly below.
           </p>
         </div>
 
@@ -89,13 +89,12 @@ export default function UserBookings() {
               <div key={b._id} className="group p-6 bg-zinc-900/40 border border-white/5 hover:border-white/20 rounded-3xl transition-all duration-300">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="flex items-center gap-4">
-                    <div className={`p-4 rounded-2xl ${
-                      b.status === 'verified' ? 'bg-green-500/10' : 
-                      b.status === 'rejected' ? 'bg-red-500/10' : 'bg-orange-500/10'
-                    }`}>
-                      {b.status === 'verified' ? <CheckCircle className="w-6 h-6 text-green-500" /> : 
-                       b.status === 'rejected' ? <XCircle className="w-6 h-6 text-red-500" /> : 
-                       <Clock className="w-6 h-6 text-orange-500" />}
+                    <div className={`p-4 rounded-2xl ${b.status === 'verified' ? 'bg-green-500/10' :
+                        b.status === 'rejected' ? 'bg-red-500/10' : 'bg-orange-500/10'
+                      }`}>
+                      {b.status === 'verified' ? <CheckCircle className="w-6 h-6 text-green-500" /> :
+                        b.status === 'rejected' ? <XCircle className="w-6 h-6 text-red-500" /> :
+                          <Clock className="w-6 h-6 text-orange-500" />}
                     </div>
                     <div>
                       <h3 className="font-black text-lg tracking-tight uppercase">{b.quantity} Tickets</h3>
@@ -107,30 +106,38 @@ export default function UserBookings() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                     <span className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                        b.status === 'verified' ? 'bg-green-500/10 border-green-500/20 text-green-500' :
+                    <span className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border ${b.status === 'verified' ? 'bg-green-500/10 border-green-500/20 text-green-500' :
                         b.status === 'rejected' ? 'bg-red-500/10 border-red-500/20 text-red-500' :
-                        'bg-orange-500/10 border-orange-500/20 text-orange-500'
-                     }`}>
-                       {b.status}
-                     </span>
+                          'bg-orange-500/10 border-orange-500/20 text-orange-500'
+                      }`}>
+                      {b.status}
+                    </span>
 
-                     {b.status === 'verified' && (
-                       <button 
-                         onClick={() => handleDownload(b._id, b.ticketId)}
-                         className="flex items-center gap-2 bg-white text-black px-6 py-2 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95"
-                       >
-                         <Download className="w-3 h-3" />
-                         Download PDF
-                       </button>
-                     )}
+                    {b.status === 'verified' && (
+                      <div className="flex flex-col items-end gap-3">
+                        <p className="text-white font-black text-xs tracking-tighter uppercase mr-4">🌼 We all meet at Bhajan Jamming</p>
+                        <button
+                          onClick={() => handleDownload(b._id, b.ticketId)}
+                          className="flex items-center gap-2 bg-white text-black px-6 py-2 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95"
+                        >
+                          <Download className="w-3 h-3" />
+                          Download PDF
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
-                
-                {b.status === 'rejected' && b.rejectionReason && (
-                   <p className="mt-4 text-[10px] text-red-400 font-bold uppercase tracking-tight opacity-70">
-                     Note: {b.rejectionReason}
+
+                {b.status === 'verified' && (
+                   <p className="mt-4 text-[9px] text-zinc-500 font-bold uppercase tracking-[0.2em] opacity-60">
+                      Let’s sing & celebrate together on {new Date(b.createdAt).toLocaleDateString()}
                    </p>
+                )}
+
+                {b.status === 'rejected' && b.rejectionReason && (
+                  <p className="mt-4 text-[10px] text-red-400 font-bold uppercase tracking-tight opacity-70">
+                    Note: {b.rejectionReason}
+                  </p>
                 )}
               </div>
             ))

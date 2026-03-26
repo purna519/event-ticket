@@ -350,42 +350,66 @@ router.put('/event', async (req, res) => {
 });
 
 // ── POST /api/admin/verify-ticket ─────────────────────────────────────────────
-// Verify a single ticket ID and mark as scanned
+// FETCH booking details for a ticket ID without automatically marking as scanned
 router.post('/verify-ticket', async (req, res) => {
   try {
     const { ticketId } = req.body;
     if (!ticketId) return res.status(400).json({ error: 'Ticket ID is required' });
 
     // Find the booking that contains this ticketId
-    const booking = await Booking.findOne({ 'tickets.ticketId': ticketId });
+    const booking = await Booking.findOne({ 'tickets.ticketId': ticketId }).lean();
     if (!booking) return res.status(404).json({ error: 'Invalid Ticket ID' });
 
-    // Find the specific ticket in the array
-    const ticketIndex = booking.tickets.findIndex(t => t.ticketId === ticketId);
-    const ticket = booking.tickets[ticketIndex];
-
-    if (ticket.scanned) {
-      return res.status(400).json({ 
-        error: 'Ticket already scanned', 
-        scannedAt: ticket.scannedAt,
-        holder: booking.name 
-      });
-    }
-
-    // Mark as scanned
-    booking.tickets[ticketIndex].scanned = true;
-    booking.tickets[ticketIndex].scannedAt = new Date();
-    await booking.save();
+    // Find the specific ticket to identify the entry point
+    const ticket = booking.tickets.find(t => t.ticketId === ticketId);
 
     res.json({
-      message: 'Access Granted',
+      message: 'Booking Identified',
+      bookingId: booking._id,
       holder: booking.name,
       ticketId: ticket.ticketId,
       quantity: booking.quantity,
-      scannedAt: booking.tickets[ticketIndex].scannedAt
+      tickets: booking.tickets // Return all tickets for partial check-in UI
     });
   } catch (err) {
     console.error('Verify ticket error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ── POST /api/admin/bookings/:id/check-in ──────────────────────────────────────
+// Mark specific ticket IDs as scanned within a booking
+router.post('/bookings/:id/check-in', async (req, res) => {
+  try {
+    const { ticketIds } = req.body; // Array of ticket IDs to check in
+    if (!Array.isArray(ticketIds) || ticketIds.length === 0) {
+      return res.status(400).json({ error: 'At least one ticket ID is required' });
+    }
+
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ error: 'Booking not found' });
+
+    let updatedCount = 0;
+    const now = new Date();
+
+    booking.tickets.forEach(t => {
+      if (ticketIds.includes(t.ticketId) && !t.scanned) {
+        t.scanned = true;
+        t.scannedAt = now;
+        updatedCount++;
+      }
+    });
+
+    if (updatedCount > 0) {
+      await booking.save();
+    }
+
+    res.json({
+      message: `${updatedCount} tickets checked in successfully`,
+      booking
+    });
+  } catch (err) {
+    console.error('Check-in error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

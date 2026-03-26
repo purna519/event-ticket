@@ -16,9 +16,11 @@
   ::-webkit-scrollbar {
     width: 6px;
   }
+
   ::-webkit-scrollbar-track {
     background: #0a0a0a;
   }
+
   ::-webkit-scrollbar-thumb {
     background: #262626;
     border-radius: 3px;
@@ -26,41 +28,30 @@
 }
 
 @layer components {
+
   /* ── Card ──────────────────────────────────────────────────────────── */
   .card {
-    @apply bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-3xl p-8 
-           shadow-[0_8px_32px_0_rgba(0,0,0,0.8)] transition-all duration-300;
+    @apply bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-3xl p-8 shadow-[0_8px_32px_0_rgba(0, 0, 0, 0.8)] transition-all duration-300;
   }
 
   /* ── Primary Button ────────────────────────────────────────────────── */
   .btn-primary {
-    @apply w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl
-           bg-white text-black font-bold text-sm tracking-tight
-           shadow-xl shadow-white/5 hover:bg-neutral-200
-           active:scale-[0.97]
-           transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100;
+    @apply w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white text-black font-bold text-sm tracking-tight shadow-xl shadow-white/5 hover:bg-neutral-200 active:scale-[0.97] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed disabled:active:scale-100;
   }
 
   /* ── Secondary Button ──────────────────────────────────────────────── */
   .btn-secondary {
-    @apply w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl
-           bg-white/[0.03] text-white font-bold text-sm border border-white/10
-           hover:bg-white/[0.08] active:scale-[0.97] transition-all duration-200;
+    @apply w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white/[0.03] text-white font-bold text-sm border border-white/10 hover:bg-white/[0.08] active:scale-[0.97] transition-all duration-200;
   }
 
   /* ── Gold Button (Refined Silver) ──────────────────────────────────── */
   .btn-gold {
-    @apply w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl
-           bg-gradient-to-r from-neutral-100 to-neutral-400 text-black font-bold text-sm
-           shadow-xl shadow-white/5 hover:from-white hover:to-neutral-200
-           active:scale-[0.97] transition-all duration-300 disabled:opacity-30;
+    @apply w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-neutral-100 to-neutral-400 text-black font-bold text-sm shadow-xl shadow-white/5 hover:from-white hover:to-neutral-200 active:scale-[0.97] transition-all duration-300 disabled:opacity-30;
   }
 
   /* ── Form Input ─────────────────────────────────────────────────────── */
   .input {
-    @apply w-full px-5 py-4 rounded-2xl bg-white/[0.03] border border-white/5 text-white
-           placeholder-white/20 focus:outline-none focus:border-white/20 focus:ring-1
-           focus:ring-white/10 focus:bg-white/[0.05] transition-all duration-500 text-sm;
+    @apply w-full px-5 py-4 rounded-2xl bg-white/[0.03] border border-white/5 text-white placeholder-white/20 focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10 focus:bg-white/[0.05] transition-all duration-500 text-sm;
   }
 
   .input-label {
@@ -69,20 +60,19 @@
 
   /* ── Badge ──────────────────────────────────────────────────────────── */
   .badge-verified {
-    @apply inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest
-           bg-white/10 text-white border border-white/20 shadow-lg shadow-white/5;
+    @apply inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/10 text-white border border-white/20 shadow-lg shadow-white/5;
   }
+
   .badge-pending {
-    @apply inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest
-           bg-white/[0.03] text-white/40 border border-white/5;
+    @apply inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/[0.03] text-white/40 border border-white/5;
   }
+
   .badge-rejected {
-    @apply inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest
-           bg-red-500/10 text-red-500/80 border border-red-500/20;
+    @apply inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-500/80 border border-red-500/20;
   }
+
   .badge-unused {
-    @apply inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest
-           bg-white/10 text-white/70 border border-white/10;
+    @apply inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/10 text-white/70 border border-white/10;
   }
 
   /* ── Stat Card ──────────────────────────────────────────────────────── */
@@ -94,15 +84,14 @@
   .page-container {
     @apply max-w-lg mx-auto px-6 py-12 min-h-screen flex flex-col justify-center animate-slide-up;
   }
+
   .page-container-wide {
     @apply max-w-7xl mx-auto px-6 py-12 animate-fade-in;
   }
 
   /* ── Premium Input (for public forms) ────────────────────────────── */
   .input-premium {
-    @apply w-full px-6 py-4 rounded-[1.25rem] bg-white/[0.02] border border-white/5 text-white
-           placeholder-white/20 focus:outline-none focus:border-white/20 focus:ring-4
-           focus:ring-white/[0.03] focus:bg-white/[0.05] transition-all duration-500 text-sm;
+    @apply w-full px-6 py-4 rounded-[1.25rem] bg-white/[0.02] border border-white/5 text-white placeholder-white/20 focus:outline-none focus:border-white/20 focus:ring-4 focus:ring-white/[0.03] focus:bg-white/[0.05] transition-all duration-500 text-sm;
   }
 
   .input-label-premium {
@@ -117,24 +106,67 @@
 
 /* Custom Animations */
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes pulse-slow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
-}
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.animate-slide-up { animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.animate-fade-in { animation: fade-in 1.2s ease-out forwards; }
-.animate-pulse-slow { animation: pulse-slow 3s infinite ease-in-out; }
-.animate-shake { animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px);
+  }
+
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 1.2s ease-out forwards;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s infinite ease-in-out;
+}
+
+.animate-shake {
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
