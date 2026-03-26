@@ -31,9 +31,11 @@ export default function AdminScanner() {
   }, []);
 
   async function onScanSuccess(decodedText) {
-    if (loading || checkInLoading) return;
+    if (loading || checkInLoading || result) return;
     
-    console.log("Scanned:", decodedText);
+    // Clean input and log it
+    const ticketIdClean = decodedText?.trim();
+    console.log("Processing Scan:", ticketIdClean);
     
     setLoading(true);
     setResult(null);
@@ -41,10 +43,10 @@ export default function AdminScanner() {
     setSelectedTickets([]); // Reset selection
 
     try {
-      const { data } = await api.post('/admin/verify-ticket', { ticketId: decodedText });
+      const { data } = await api.post('/admin/verify-ticket', { ticketId: ticketIdClean });
       setResult(data);
       // Automatically pre-select the scanned ticket if not already scanned
-      const scannedTicket = data.tickets.find(t => t.ticketId === decodedText);
+      const scannedTicket = data.tickets.find(t => t.ticketId === ticketIdClean);
       if (scannedTicket && !scannedTicket.scanned) {
         setSelectedTickets([decodedText]);
       }

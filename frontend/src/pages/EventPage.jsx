@@ -230,21 +230,6 @@ export default function EventPage() {
               {/* Stars Overlay */}
               <div className="stars-overlay"></div>
 
-              {/* Jumping Rama Warrior */}
-              <div className="divine-anim-layer">
-                <div className="rama-warrior-anim">
-                  <svg viewBox="0 0 300 300" style={{ width: '100%', height: '100%' }}>
-                    <path d="M100,20 C40,20 20,100 20,150 C20,200 40,280 100,280" fill="none" stroke="gold" strokeWidth="8" />
-                    <path d="M100,20 L100,280" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-                    <path d="M120,80 L140,40 C140,40 160,30 150,60 L140,80 L180,120 L160,180 L100,220 L80,180 L100,120 Z" fill="rgba(212, 175, 55, 0.8)" />
-                    <circle cx="150" cy="50" r="12" fill="rgba(212, 175, 55, 0.8)" />
-                  </svg>
-                  <div className="divine-arrow-shot">
-                    <div className="arrow-divine-trail"></div>
-                  </div>
-                </div>
-              </div>
-
               {/* Premium Sold Out Banner */}
               <div className="relative text-center animate-slide-up">
                 <div className="inline-block p-1 bg-gradient-to-r from-yellow-500/50 via-white/20 to-yellow-500/50 rounded-[3rem] mb-6">
