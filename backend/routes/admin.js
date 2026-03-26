@@ -107,6 +107,10 @@ router.get('/stats', async (req, res) => {
     const event = await Event.findOne({}).lean();
     const totalCapacity = event?.totalCapacity || 150;
 
+    // Calculate TRULY reserved tickets (sum of quantity for verified/pending)
+    const allReserved = await Booking.find({ status: { $in: ['verified', 'pending'] } }).select('quantity');
+    const reservedTickets = allReserved.reduce((sum, b) => sum + (b.quantity || 1), 0);
+
     res.json({
       totalBookings,
       verified,
@@ -118,6 +122,7 @@ router.get('/stats', async (req, res) => {
       totalTickets,
       scannedTickets,
       totalCapacity,
+      reservedTickets,
     });
   } catch (err) {
     console.error('Stats error:', err);
