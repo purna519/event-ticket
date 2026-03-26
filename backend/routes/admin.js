@@ -104,6 +104,9 @@ router.get('/stats', async (req, res) => {
       }
     });
 
+    const event = await Event.findOne({}).lean();
+    const totalCapacity = event?.totalCapacity || 150;
+
     res.json({
       totalBookings,
       verified,
@@ -114,6 +117,7 @@ router.get('/stats', async (req, res) => {
       unusedPayments: totalPayments - usedPayments,
       totalTickets,
       scannedTickets,
+      totalCapacity,
     });
   } catch (err) {
     console.error('Stats error:', err);

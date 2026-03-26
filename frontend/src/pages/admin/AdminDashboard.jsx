@@ -19,7 +19,7 @@ export default function AdminDashboard() {
 
   const cards = stats
     ? [
-        { icon: Users, label: 'Available Tickets', value: Math.max(0, 150 - stats.totalTickets), color: 'border-white text-white bg-white/5 shadow-2xl shadow-white/5' },
+        { icon: Users, label: 'Available Tickets', value: Math.max(0, (stats.totalCapacity || 150) - stats.totalTickets), color: 'border-white text-white bg-white/5 shadow-2xl shadow-white/5' },
         { icon: Ticket, label: 'Tickets Issued', value: stats.totalTickets, color: 'border-white/10 text-white/60' },
         { icon: QrCode, label: 'Checked In', value: stats.scannedTickets, color: 'border-green-500/10 text-green-500' },
         { icon: Clock, label: 'Pending Bookings', value: stats.pending, color: 'border-white/5 text-white/40' },
