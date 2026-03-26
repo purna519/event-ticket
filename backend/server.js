@@ -103,7 +103,10 @@ async function seedAdminAndEvent() {
   };
 
   if (!event) {
+    console.log('🎫 No event found, seeding default event...');
     await Event.create(eventData);
-    console.log('🎫 Default event created');
+    console.log('✅ Default event created successfully');
+  } else {
+    console.log(`🎫 Existing event found: "${event.name}". Skipping seed.`);
   }
 }

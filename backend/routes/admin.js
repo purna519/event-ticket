@@ -298,7 +298,7 @@ router.patch('/bookings/:id/reject', async (req, res) => {
 // Update event details
 router.put('/event', async (req, res) => {
   try {
-    const { name, date, time, venue, locationUrl, description, price, upiId, upiName, upiNote, supportNumber, benefits, sponsors } = req.body;
+    const { name, date, time, venue, locationUrl, description, price, totalCapacity, upiId, upiName, upiNote, supportNumber, benefits, sponsors } = req.body;
     const event = await Event.findOne({});
     if (!event) return res.status(404).json({ error: 'No event found' });
 
@@ -310,6 +310,7 @@ router.put('/event', async (req, res) => {
       ...(locationUrl !== undefined && { locationUrl }),
       ...(description !== undefined && { description }),
       ...(price && { price: parseFloat(price) }),
+      ...(totalCapacity && { totalCapacity: parseInt(totalCapacity) }),
       ...(upiId && { upiId }),
       ...(upiName && { upiName }),
       ...(upiNote && { upiNote }),
