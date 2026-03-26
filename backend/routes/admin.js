@@ -247,9 +247,9 @@ router.patch('/bookings/:id/approve', async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
-    // Generate multi-tickets if not already present
-    if (!booking.tickets || booking.tickets.length === 0) {
-      const qty = booking.quantity || 1;
+    // Generate multi-tickets if not already matching the quantity
+    const qty = booking.quantity || 1;
+    if (!booking.tickets || booking.tickets.length !== qty) {
       const tickets = [];
       for (let i = 0; i < qty; i++) {
         tickets.push({

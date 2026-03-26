@@ -50,13 +50,14 @@ router.post('/initiate', userAuth, async (req, res) => {
       return res.status(403).json({ error: 'Event Capacity Reached' });
     }
 
-    // Generate unique ticket ID for reference
-    const primaryTicketId = 'TKT-' + uuidv4().split('-')[0].toUpperCase();
-    const generatedUtr = Math.floor(100000000000 + Math.random() * 900000000000).toString();
-    const tickets = [{
-        ticketId: primaryTicketId,
-        scanned: false
-    }];
+    // Generate unique ticket IDs for the quantity
+    const tickets = [];
+    for (let i = 0; i < requestedQty; i++) {
+        tickets.push({
+            ticketId: 'TKT-' + uuidv4().split('-')[0].toUpperCase() + (requestedQty > 1 ? `-${i + 1}` : ''),
+            scanned: false
+        });
+    }
 
     const booking = await Booking.create({
       userId: user._id,
@@ -65,7 +66,7 @@ router.post('/initiate', userAuth, async (req, res) => {
       email: user.email,
       quantity: requestedQty,
       status: 'pending',
-      ticketId: primaryTicketId,
+      ticketId: tickets[0].ticketId,
       utr: generatedUtr,
       tickets,
     });
