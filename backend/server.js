@@ -105,12 +105,5 @@ async function seedAdminAndEvent() {
   if (!event) {
     await Event.create(eventData);
     console.log('🎫 Default event created');
-  } else {
-    // Force update UPI details if they don't match the environment
-    if (event.upiId !== eventData.upiId) {
-      Object.assign(event, eventData);
-      await event.save();
-      console.log('🎫 Event UPI details updated from environment');
-    }
   }
 }
