@@ -23,30 +23,27 @@ function generateOTP() {
  */
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, phone, password } = req.body;
-
+    const { name, email, phone, password, gender } = req.body;
     // Validation
-    if (!name || !email || !phone || !password) {
+    if (!name || !email || !phone || !password || !gender) {
       return res.status(400).json({ error: 'All fields are required' });
     }
     if (phone.length !== 10) {
       return res.status(400).json({ error: 'Phone number must be 10 digits' });
     }
-
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ error: 'Email already registered' });
     }
-
     const startTime = Date.now();
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
-
     const user = new User({
       name,
       email,
       phone,
       password,
+      gender,
       encryptedPassword: encrypt(password),
       otp,
       otpExpires,
@@ -90,6 +87,26 @@ router.post('/verify-otp', async (req, res) => {
     user.otp = undefined;
     user.otpExpires = undefined;
     await user.save();
+
+    // ── GUEST BOOKING SYNC ──
+    try {
+        const Booking = require('../models/Booking');
+        // Link all existing bookings with same phone/email that don't have a valid member ID yet
+        const syncResult = await Booking.updateMany(
+            { 
+               $or: [{ phone: user.phone }, { email: user.email }],
+               $or: [
+                 { userId: { $exists: false } },
+                 { userId: null },
+                 { userId: "" }
+               ]
+            },
+            { $set: { userId: user._id } }
+        );
+        console.log(`[SYNC] Linked ${syncResult.modifiedCount} guest bookings to verified account: ${user.email}`);
+    } catch (syncErr) {
+        console.error('[SYNC ERROR] Failed to link guest bookings:', syncErr);
+    }
 
     res.json({ message: 'Account verified. You can now login.' });
   } catch (err) {
@@ -181,6 +198,44 @@ router.post('/reset-password', async (req, res) => {
     res.json({ message: 'Password reset successful' });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+const userAuthMiddleware = require('../middleware/userAuth');
+
+/**
+ * GET /api/user/auth/profile
+ */
+router.get('/profile', userAuthMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password -encryptedPassword -otp');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error fetching profile' });
+  }
+});
+
+/**
+ * PUT /api/user/auth/profile
+ */
+router.put('/profile', userAuthMiddleware, async (req, res) => {
+  try {
+    const { phone, gender, dob, ageGroup } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (phone) user.phone = phone;
+    if (gender) user.gender = gender;
+    if (dob) user.dob = dob;
+    if (ageGroup) user.ageGroup = ageGroup;
+
+    await user.save();
+    res.json({ message: 'Profile updated successfully', user });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ error: 'Server error updating profile' });
   }
 });
 

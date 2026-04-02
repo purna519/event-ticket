@@ -1,10 +1,6 @@
-// ─── pages/admin/AdminLogin.jsx ───────────────────────────────────────────────
-// Admin login form — stores JWT in localStorage on success
-// ──────────────────────────────────────────────────────────────────────────────
-
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Lock, ArrowLeft } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Lock, ArrowLeft, ShieldCheck, Loader2, ArrowRight, User } from 'lucide-react';
 import api from '../../api';
 
 export default function AdminLogin() {
@@ -29,64 +25,81 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-sm animate-slide-up">
+    <div className="min-h-screen bg-[#070503] flex items-center justify-center p-6 selection:bg-[#c9a84c]/30">
+      <div className="w-full max-w-md space-y-10 animate-hero-in">
+        
         {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-white/[0.03] border border-white/10 text-white mb-6 shadow-2xl">
-            <Lock size={28} strokeWidth={1.5} />
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#c9a84c]/5 border border-[#c9a84c]/20 mb-2">
+            <ShieldCheck className="w-8 h-8 text-[#c9a84c]" />
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tighter overflow-hidden">ADMIN<span className="text-white/30">PANEL</span></h1>
-          <p className="text-white/30 text-xs font-bold uppercase tracking-[0.2em] mt-3">Identity Verification Required</p>
+          <div>
+            <h1 className="font-playfair text-4xl font-black text-white tracking-tighter uppercase leading-none">
+              Command<br /><em className="text-[#c9a84c] not-italic italic">Center</em>
+            </h1>
+            <p className="text-[#7a6e5c] text-[10px] tracking-[4px] uppercase font-bold mt-4">Identity Verification Required</p>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="card space-y-4">
-          <div>
-            <label className="input-label">Username</label>
-            <input
-              type="text"
-              value={form.username}
-              onChange={(e) => setForm((p) => ({ ...p, username: e.target.value }))}
-              placeholder="admin"
-              required
-              className="input"
-            />
-          </div>
-          <div>
-            <label className="input-label">Password</label>
-            <input
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-              placeholder="••••••••"
-              required
-              className="input"
-            />
-          </div>
-
-          {error && (
-            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-              {error}
+        {/* Form Container */}
+        <div className="card-premium !p-8 md:!p-10">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[9px] tracking-[2.5px] uppercase text-[#7a6e5c] font-bold">Admin Identifier</label>
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7a6e5c] group-focus-within:text-[#c9a84c] transition-colors" />
+                <input
+                  type="text"
+                  required
+                  className="w-full bg-[#c9a84c]/[0.03] border border-[#c9a84c]/15 p-4 pl-12 text-white font-dm text-[14px] outline-none focus:border-[#c9a84c] transition-all"
+                  placeholder="Username"
+                  value={form.username}
+                  onChange={(e) => setForm((p) => ({ ...p, username: e.target.value }))}
+                />
+              </div>
             </div>
-          )}
 
-          <button type="submit" disabled={loading} className="btn-primary py-3.5">
-            {loading ? (
-              <>
-                <div className="spinner" />
-                Signing in…
-              </>
-            ) : (
-              'Sign In'
+            <div className="space-y-2">
+              <label className="text-[9px] tracking-[2.5px] uppercase text-[#7a6e5c] font-bold">Access Code</label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7a6e5c] group-focus-within:text-[#c9a84c] transition-colors" />
+                <input
+                  type="password"
+                  required
+                  className="w-full bg-[#c9a84c]/[0.03] border border-[#c9a84c]/15 p-4 pl-12 text-white font-dm text-[14px] outline-none focus:border-[#c9a84c] transition-all"
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 animate-shake">
+                <p className="text-red-500 text-[10px] font-bold text-center uppercase tracking-widest">{error}</p>
+              </div>
             )}
-          </button>
-        </form>
 
-        <p className="text-center mt-10">
-          <a href="/" className="inline-flex items-center gap-2 text-white/20 hover:text-white/60 text-[11px] font-black uppercase tracking-widest transition-all duration-300">
-            <ArrowLeft size={14} /> Back to Event
-          </a>
-        </p>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full btn-gold flex items-center justify-center gap-3 !py-5 shadow-[0_15px_35px_rgba(201,168,76,0.15)] group"
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                <>
+                  Establish Connection <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Back Link */}
+        <div className="text-center">
+          <Link to="/" className="inline-flex items-center gap-2 text-[#7a6e5c] hover:text-[#c9a84c] text-[10px] font-bold uppercase tracking-[3px] transition-all duration-300 group">
+            <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Back to Sanctuary
+          </Link>
+        </div>
       </div>
     </div>
   );

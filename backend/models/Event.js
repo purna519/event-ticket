@@ -25,6 +25,21 @@ const eventSchema = new mongoose.Schema(
         logoUrl: { type: String, required: true },
       }
     ],
+    status: { type: String, enum: ['Active', 'Draft', 'Sold Out', 'Completed'], default: 'Active' },
+    isArchived: { type: Boolean, default: false },
+    isFeatured: { type: Boolean, default: false },
+    slug: { type: String, unique: true, sparse: true }, // Sparse to allow old events without slugs
+    tags: { type: [String], default: [] },
+    imageUrl: { type: String, default: '' },
+    videoUrl: { type: String, default: '' },
+    media: [
+      {
+        url: { type: String, required: true },
+        type: { type: String, enum: ['image', 'video'], default: 'image' },
+        role: { type: String, enum: ['cover', 'hero_video', 'hero_image', 'gallery'], default: 'gallery' }
+      }
+    ],
+    displayUntil: { type: Date }, // Set duration for how long your event appears
   },
   { timestamps: true }
 );

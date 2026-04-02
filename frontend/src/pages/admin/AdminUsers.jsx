@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api';
-import { Users, Search, Edit2, Trash2, Plus, X, Save, Loader2, Mail, Phone, User as UserIcon } from 'lucide-react';
+import { 
+  Users, Search, Edit2, Trash2, Plus, X, 
+  Save, Loader2, Mail, Phone, User as UserIcon,
+  ShieldCheck, Download, Filter, UserCheck, TrendingUp, ArrowRight
+} from 'lucide-react';
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -60,130 +64,149 @@ export default function AdminUsers() {
     }
   };
 
+  const handleExport = () => {
+    window.open(`${api.defaults.baseURL}/admin/users/export`, '_blank');
+  };
+
+  // Simple Analytics
+  const totalVerified = users.filter(u => u.isVerified).length;
+  const newToday = users.filter(u => new Date(u.createdAt).toDateString() === new Date().toDateString()).length;
+
   return (
-    <div className="space-y-8 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+    <div className="space-y-12 animate-hero-in">
+      
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tighter uppercase italic flex items-center gap-3 text-white">
-            <Users className="w-8 h-8" /> User Directory
+          <div className="text-[10px] tracking-[4px] uppercase text-[#c9a84c] mb-3 font-bold flex items-center gap-3">
+             <ShieldCheck size={14} /> Member Intelligence
+          </div>
+          <h1 className="font-playfair text-[clamp(42px,4vw,64px)] font-black leading-[0.9] tracking-[-2px] text-white">
+            User<br /><em className="text-[#c9a84c] not-italic italic">Directory</em>
           </h1>
-          <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mt-1">Manage platform members</p>
         </div>
-        
-        <button 
-          onClick={() => { setEditingUser(null); setFormData({ name: '', email: '', phone: '', password: '' }); setIsModalOpen(true); }}
-          className="flex items-center justify-center gap-2 bg-white text-black px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-95 w-full sm:w-auto"
-        >
-          <Plus className="w-3 h-3" /> Add New User
-        </button>
+        <div className="flex flex-wrap gap-4">
+            <button 
+              onClick={handleExport}
+              className="w-12 h-12 border border-[#c9a84c]/20 flex items-center justify-center text-[#c9a84c] hover:bg-[#c9a84c]/5 transition-all"
+              title="Export User Data"
+            >
+              <Download size={16} />
+            </button>
+            <button 
+              onClick={() => { setEditingUser(null); setFormData({ name: '', email: '', phone: '', password: '' }); setIsModalOpen(true); }}
+              className="btn-gold flex items-center gap-3"
+            >
+              <Plus size={16} /> Enroll Member
+            </button>
+        </div>
+      </div>
+
+      {/* Analytics Widgets */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[
+          { label: 'Total Members', val: users.length, icon: Users },
+          { label: 'Verified Status', val: totalVerified, icon: UserCheck },
+          { label: 'New Discoveries', val: newToday, icon: TrendingUp },
+        ].map((s, i) => (
+          <div key={i} className="card-premium !p-6 flex items-center gap-6">
+            <div className="w-12 h-12 bg-[#c9a84c]/5 border border-[#c9a84c]/20 flex items-center justify-center text-[#c9a84c]">
+              <s.icon size={20} />
+            </div>
+            <div>
+              <p className="text-[10px] tracking-[2px] uppercase text-[#7a6e5c] font-bold">{s.label}</p>
+              <p className="font-playfair text-3xl font-black text-white italic leading-none mt-1">{s.val}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Search Bar */}
       <div className="relative group">
-        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-white transition-colors" />
-        <input 
-          type="text"
-          placeholder="Search members..."
-          className="w-full bg-zinc-900/50 border border-white/5 rounded-3xl py-5 pl-14 pr-6 text-white placeholder:text-zinc-600 focus:border-white/20 focus:bg-zinc-900 transition-all outline-none text-sm font-medium"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7a6e5c] group-focus-within:text-[#c9a84c] transition-colors" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search Member Archives..."
+            className="w-full bg-[#c9a84c]/[0.03] border border-[#c9a84c]/15 p-5 pl-14 text-white font-dm text-[15px] outline-none focus:border-[#c9a84c] transition-all"
+          />
       </div>
 
-      {/* Users Table */}
-      <div className="bg-zinc-900/30 border border-white/5 rounded-3xl overflow-hidden">
+      {/* Users List */}
+      <div className="card-premium !p-0 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[600px] lg:min-w-0">
+          <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-white/5 bg-white/[0.02]">
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500">User</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500">Contact</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500">Password</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500">Status</th>
-                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-zinc-500 text-right">Actions</th>
+              <tr className="border-b border-[#c9a84c]/10">
+                <th className="p-8 text-[10px] uppercase tracking-[3px] text-[#7a6e5c] font-bold">Identity</th>
+                <th className="p-8 text-[10px] uppercase tracking-[3px] text-[#7a6e5c] font-bold">Encrypted Credentials</th>
+                <th className="p-8 text-[10px] uppercase tracking-[3px] text-[#7a6e5c] font-bold">Verification</th>
+                <th className="p-8 text-[10px] uppercase tracking-[3px] text-[#7a6e5c] font-bold text-right">Operation</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[#c9a84c]/5">
               {loading ? (
                 <tr>
-                  <td colSpan="5" className="px-8 py-20 text-center">
-                    <Loader2 className="w-6 h-6 text-zinc-700 animate-spin mx-auto" />
+                  <td colSpan="4" className="p-20 text-center">
+                    <div className="inline-block w-8 h-8 border-2 border-[#c9a84c] border-t-transparent animate-spin rounded-full mb-4" />
+                    <p className="text-[10px] tracking-[3px] uppercase text-[#7a6e5c]">Querying member vaults...</p>
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-8 py-20 text-center text-zinc-500 text-[10px] font-black uppercase tracking-widest">
-                    No users found
+                  <td colSpan="4" className="p-20 text-center text-[#7a6e5c] text-[11px] uppercase tracking-[3px]">
+                    No members discovered
                   </td>
                 </tr>
-              ) : (
-                users.map((u) => (
-                  <tr key={u._id} className="hover:bg-white/[0.01] transition-colors group">
-                    <td className="px-8 py-6 font-bold text-white tracking-tight uppercase italic">{u.name}</td>
-                    <td className="px-8 py-6">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-bold tracking-tight uppercase">
-                          <Mail className="w-3 h-3 opacity-30" /> {u.email}
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-bold tracking-tight uppercase">
-                          <Phone className="w-3 h-3 opacity-30" /> {u.phone}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6 font-mono text-[10px] text-yellow-500/80 tracking-widest font-bold">
-                      <div className="flex items-center gap-2 group/pass relative">
-                        {u.supportPassword ? (
-                          <>
-                            <span className="opacity-0 group-hover/pass:opacity-100 transition-opacity bg-black border border-white/10 px-2 py-1 rounded absolute -top-8 left-0 z-10 whitespace-nowrap text-white">
-                              {u.supportPassword}
-                            </span>
-                            <span className="group-hover/pass:text-white transition-colors cursor-help">
-                              ••••••••
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-zinc-700 italic">Not Available</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${u.isVerified ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'}`}>
-                        {u.isVerified ? 'Verified' : 'Pending'}
-                      </span>
-                    </td>
-                    <td className="px-8 py-6 text-right">
-                      <div className="flex items-center justify-end gap-2 lg:opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={async () => {
-                            try {
-                              await api.patch(`/admin/users/${u._id}/verify`, { isVerified: !u.isVerified });
-                              fetchUsers();
-                            } catch (err) {
-                              alert('Verification toggle failed');
-                            }
-                          }}
-                          className={`p-2.5 rounded-xl transition-all ${u.isVerified ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' : 'bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10'}`}
-                          title={u.isVerified ? 'Unverify User' : 'Verify User'}
-                        >
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
-                        </button>
-                        <button 
-                          onClick={() => handleEdit(u)}
-                          className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-zinc-400 hover:text-white transition-all"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(u._id)}
-                          className="p-2.5 bg-white/5 hover:bg-red-500/10 rounded-xl text-zinc-400 hover:text-red-500 transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ) : users.map(u => (
+                <tr key={u._id} className="group hover:bg-[#c9a84c]/[0.02] transition-colors">
+                  <td className="p-8">
+                    <div className="font-playfair text-white text-lg font-bold group-hover:text-[#c9a84c] transition-colors">{u.name}</div>
+                    <div className="flex gap-4 mt-1">
+                       <span className="text-[10px] text-[#7a6e5c] uppercase flex items-center gap-1.5"><Mail size={10} /> {u.email}</span>
+                       <span className="text-[10px] text-[#7a6e5c] uppercase flex items-center gap-1.5"><Phone size={10} /> {u.phone}</span>
+                    </div>
+                  </td>
+                  <td className="p-8">
+                    <div className="group/pass relative font-mono text-[11px] text-[#c9a84c]/40 tracking-widest cursor-pointer hover:text-[#c9a84c] transition-colors flex items-center gap-2">
+                       {u.supportPassword ? (
+                         <>
+                           <span>••••••••</span>
+                           <div className="opacity-0 group-hover/pass:opacity-100 absolute -top-12 left-0 bg-[#070503] border border-[#c9a84c]/20 p-2 text-white font-dm text-[10px] whitespace-nowrap z-50 transition-all">
+                             Archive Password: <span className="text-[#c9a84c] font-mono">{u.supportPassword}</span>
+                           </div>
+                         </>
+                       ) : <span className="italic opacity-30">NOT_DCRYPTD</span>}
+                    </div>
+                  </td>
+                  <td className="p-8">
+                    <button 
+                      onClick={async () => {
+                        try {
+                          await api.patch(`/admin/users/${u._id}/verify`, { isVerified: !u.isVerified });
+                          fetchUsers();
+                        } catch (err) { alert('Verification failed'); }
+                      }}
+                      className={`text-[9px] font-bold uppercase tracking-[2px] px-3 py-1.5 border transition-all ${
+                        u.isVerified ? 'bg-[#c9a84c]/10 text-[#c9a84c] border-[#c9a84c]/20' : 'bg-red-500/10 text-red-500/40 border-red-500/10'
+                      }`}
+                    >
+                      {u.isVerified ? 'VERIFIED' : 'PENDING'}
+                    </button>
+                  </td>
+                  <td className="p-8 text-right">
+                    <div className="flex justify-end gap-2 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleEdit(u)} className="w-10 h-10 border border-[#c9a84c]/20 flex items-center justify-center text-[#c9a84c] hover:bg-[#c9a84c] hover:text-[#070503] transition-all">
+                        <Edit2 size={16} />
+                      </button>
+                      <button onClick={() => handleDelete(u._id)} className="w-10 h-10 border border-red-500/10 flex items-center justify-center text-red-500/30 hover:bg-red-500 hover:text-white transition-all">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -191,90 +214,67 @@ export default function AdminUsers() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-zinc-900 border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative">
-            <button 
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-6 right-6 p-2 hover:bg-white/5 rounded-full transition-all"
-            >
-              <X className="w-5 h-5 text-zinc-500" />
-            </button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+           <div className="absolute inset-0 bg-[#070503]/90 backdrop-blur-xl" onClick={() => setIsModalOpen(false)} />
+           <div className="relative w-full max-w-xl bg-[#070503] border border-[#c9a84c]/20 p-10 md:p-14 animate-hero-in">
+              <h2 className="font-playfair text-4xl font-black text-white mb-2 uppercase italic tracking-tighter">
+                {editingUser ? 'Amend' : 'Enroll'}<br /><em className="not-italic text-[#c9a84c]">Member</em>
+              </h2>
+              <p className="text-[10px] tracking-[4px] uppercase text-[#7a6e5c] mb-10">Archive Identity Modification</p>
 
-            <h2 className="text-3xl font-black tracking-tighter uppercase italic mb-8">
-              {editingUser ? 'Edit Member' : 'New Member'}
-            </h2>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] text-zinc-500 font-black uppercase tracking-widest ml-1">Full Name</label>
-                <div className="relative group">
-                  <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-white transition-colors" />
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[9px] uppercase tracking-[2px] text-[#7a6e5c] font-bold">Identity Full Name</label>
                   <input
-                    type="text"
                     required
-                    className="w-full bg-black border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-white/30 transition-all outline-none"
+                    className="w-full bg-[#c9a84c]/[0.03] border border-[#c9a84c]/15 p-4 text-white font-dm text-[14px] outline-none focus:border-[#c9a84c]"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] text-zinc-500 font-black uppercase tracking-widest ml-1">Email</label>
-                  <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-white transition-colors" />
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[9px] uppercase tracking-[2px] text-[#7a6e5c] font-bold">Email Node</label>
                     <input
-                      type="email"
-                      required
-                      className="w-full bg-black border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-white/30 transition-all outline-none"
+                      type="email" required
+                      className="w-full bg-[#c9a84c]/[0.03] border border-[#c9a84c]/15 p-4 text-white font-dm text-[14px] outline-none focus:border-[#c9a84c]"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     />
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] text-zinc-500 font-black uppercase tracking-widest ml-1">Phone</label>
-                  <div className="relative group">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-white transition-colors" />
+                  <div className="space-y-2">
+                    <label className="text-[9px] uppercase tracking-[2px] text-[#7a6e5c] font-bold">Registry Phone</label>
                     <input
-                      type="tel"
-                      required
-                      className="w-full bg-black border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-white/30 transition-all outline-none"
+                      type="tel" required
+                      className="w-full bg-[#c9a84c]/[0.03] border border-[#c9a84c]/15 p-4 text-white font-dm text-[14px] outline-none focus:border-[#c9a84c]"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     />
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] text-zinc-500 font-black uppercase tracking-widest ml-1">Password {editingUser && '(Leave blank to keep)'}</label>
-                <div className="relative group">
-                  <Save className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-white transition-colors" />
+                <div className="space-y-2">
+                  <label className="text-[9px] uppercase tracking-[2px] text-[#7a6e5c] font-bold">Access Code {editingUser && '(Leave Blank to Retain)'}</label>
                   <input
                     type="password"
                     required={!editingUser}
-                    className="w-full bg-black border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:border-white/30 transition-all outline-none"
+                    className="w-full bg-[#c9a84c]/[0.03] border border-[#c9a84c]/15 p-4 text-white font-dm text-[14px] outline-none focus:border-[#c9a84c]"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   />
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-white text-black font-black py-5 rounded-2xl hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 uppercase tracking-tighter active:scale-[0.98] disabled:opacity-50"
-              >
-                {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                  <>
-                    <Save className="w-4 h-4" /> {editingUser ? 'Update Member' : 'Save Member'}
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
+                <div className="pt-6 flex gap-4">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 border border-[#c9a84c]/10 text-[#7a6e5c] py-5 uppercase text-[11px] font-bold tracking-[3px] hover:bg-white/5 transition-colors">
+                    Discard
+                  </button>
+                  <button type="submit" disabled={submitting} className="flex-1 btn-gold py-5 flex items-center justify-center gap-3">
+                    {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Save Archive <ArrowRight size={16} /></>}
+                  </button>
+                </div>
+              </form>
+           </div>
         </div>
       )}
     </div>

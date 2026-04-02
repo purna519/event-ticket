@@ -1,13 +1,7 @@
-// ─── pages/StatusPage.jsx ─────────────────────────────────────────────────────
-// Shows booking verification status with unified layout.
-// ──────────────────────────────────────────────────────────────────────────────
-
-import { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, Clock, XCircle, Ticket, QrCode, FileText, RefreshCcw, ArrowLeft, ShieldCheck, Mail, Phone, User, AlertCircle } from 'lucide-react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { CheckCircle, Clock, XCircle, Ticket, QrCode, FileText, RefreshCcw, ArrowLeft, ShieldCheck, Mail, Phone, User, AlertCircle, Download, Share2 } from 'lucide-react';
 import api from '../api';
-import StepIndicator from '../components/StepIndicator';
-import PublicLayout from '../components/PublicLayout';
 
 export default function StatusPage() {
   const { bookingId } = useParams();
@@ -17,6 +11,7 @@ export default function StatusPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [countdown, setCountdown] = useState(10);
+  const revealRefs = useRef([]);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -24,7 +19,6 @@ export default function StatusPage() {
       setBooking(data);
       
       if (data.status === 'verified' && data.tickets) {
-        // Fetch QRs for all tickets in parallel
         const qrPromises = data.tickets.map(t => api.get(`/bookings/qr/${t.ticketId}`));
         const qrResults = await Promise.all(qrPromises);
         const qrMap = {};
@@ -45,7 +39,18 @@ export default function StatusPage() {
   }, [fetchStatus]);
 
   useEffect(() => {
-    if (!booking || booking.status !== 'pending') return;
+    if (loading) return;
+
+    const observer = new IntersectionObserver(
+        (entries) => entries.forEach(e => e.isIntersecting && e.target.classList.add('visible')),
+        { threshold: 0.1 }
+      );
+      revealRefs.current.forEach(ref => ref && observer.observe(ref));
+      return () => observer.disconnect();
+  }, [loading]);
+
+  useEffect(() => {
+    if (!booking || (booking.status !== 'pending' && booking.status !== 'initiated')) return;
 
     setCountdown(10);
     const timer = setInterval(() => {
@@ -61,243 +66,176 @@ export default function StatusPage() {
     return () => clearInterval(timer);
   }, [booking?.status, fetchStatus]);
 
-  const handleDownloadPDF = () => {
-    window.open(`/api/bookings/ticket/${bookingId}`, '_blank');
+  const addToRefs = (el) => {
+    if (el && !revealRefs.current.includes(el)) revealRefs.current.push(el);
   };
 
-  const handleShare = async () => {
+  const handleDownloadPDF = async () => {
     try {
-      const ticketUrl = `${window.location.origin}/api/bookings/ticket/${bookingId}`;
-      const msg = `Got my Bhajan Ticket! 🎶 Confirming my entry for the devotional experience. Download ticket: ${ticketUrl}`;
-      
-      // Try Native Share if on mobile and file sharing is supported
-      if (navigator.share) {
-        try {
-          const response = await fetch(`/api/bookings/ticket/${bookingId}`);
-          const blob = await response.blob();
-          const file = new File([blob], `bhajan-ticket-${booking.ticketId}.pdf`, { type: 'application/pdf' });
-          
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              files: [file],
-              title: 'Bhajan Ticket',
-              text: 'My ticket for the devotional jamming experience!',
-            });
-            return;
-          }
-        } catch (shareErr) {
-          console.log('Native share failed, falling back to link');
-        }
+        const resp = await api.get(`/bookings/ticket/${bookingId}`, {
+          responseType: 'blob',
+        });
+        const url = window.URL.createObjectURL(new Blob([resp.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `ticket-${bookingId.slice(-6)}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (err) {
+        alert('Failed to download ticket');
       }
-
-      // Fallback: WhatsApp Link
-      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-    } catch (err) {
-       window.open(`https://wa.me/?text=${encodeURIComponent(`Got my Bhajan Ticket! Check status: ${window.location.href}`)}`, '_blank');
-    }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="spinner w-10 h-10 border-[3px]" />
-          <p className="text-white/30 text-xs font-bold uppercase tracking-widest leading-relaxed">Reading Ledger…</p>
-        </div>
+      <div className="min-h-screen bg-[#070503] flex items-center justify-center">
+        <div className="w-10 h-10 border-2 border-[#c9a84c] border-t-transparent animate-spin rounded-full" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <PublicLayout>
-        <div className="animate-slide-up px-4">
-          <div className="card text-center !p-12 border-red-500/20 bg-red-500/5">
-            <div className="text-red-500 mb-6 flex justify-center"><AlertCircle size={48} strokeWidth={1} /></div>
-            <p className="text-red-400 font-black uppercase tracking-widest text-xs mb-8">{error}</p>
-            <button onClick={() => navigate('/')} className="btn-secondary w-full py-4 text-[10px] font-black uppercase tracking-widest">
-              Go Home
-            </button>
-          </div>
+      <div className="min-h-screen bg-[#070503] flex items-center justify-center p-6">
+        <div className="card text-center !p-12 border-red-500/20 bg-red-500/5 max-w-md">
+          <div className="text-red-500 mb-6 flex justify-center"><AlertCircle size={48} strokeWidth={1} /></div>
+          <p className="text-red-400 font-black uppercase tracking-widest text-[10px] mb-8">{error}</p>
+          <button onClick={() => navigate('/')} className="btn-gold !bg-red-500 !text-white w-full">
+            Go Home
+          </button>
         </div>
-      </PublicLayout>
+      </div>
     );
   }
 
   return (
-    <PublicLayout>
-      <div className="animate-slide-up">
-        {/* Step Indicator */}
-        <div className="mb-12">
-          <StepIndicator current={3} />
+    <div className="bg-[#070503] pt-[120px] pb-[100px] px-6 md:px-[60px]">
+      <div className="max-w-4xl mx-auto">
+        
+        {/* Header */}
+        <div ref={addToRefs} className="reveal mb-16 text-center">
+           <div className={`inline-flex items-center gap-3 uppercase tracking-[4px] text-[10px] mb-4 font-bold ${
+             booking.status === 'verified' ? 'text-green-500' : 
+             booking.status === 'rejected' ? 'text-red-500' : 'text-[#c9a84c]'
+           }`}>
+             {booking.status === 'verified' ? <CheckCircle size={14} /> : 
+              booking.status === 'rejected' ? <XCircle size={14} /> : <Clock size={14} />}
+             {booking.status} Status
+           </div>
+           <h1 className="font-playfair text-[clamp(32px,5vw,62px)] font-black leading-[1] tracking-[-2px] text-white">
+              {booking.status === 'verified' ? 'Access Confirmed' : 
+               booking.status === 'rejected' ? 'Review Failed' : 'Security Clearance'}
+           </h1>
         </div>
 
-        {/* Status Content */}
-        <div className="space-y-12">
-          
-          {/* ── Verified State ────────────────────────────────────────────────── */}
-          {booking.status === 'verified' && (
-            <div className="space-y-10">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <CheckCircle size={16} className="text-white/60" />
-                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 font-sans">Verification Successful</p>
-                </div>
-                <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-[0.95]">
-                  Entry Highly<br />Confirmed
-                </h1>
-              </div>
+        {/* ── VERIFIED ── */}
+        {booking.status === 'verified' && (
+           <div className="space-y-8">
+              {(booking.tickets || [{ ticketId: booking.ticketId }]).map((t, idx) => (
+                <div key={t.ticketId} ref={addToRefs} className="reveal bg-[#c9a84c]/[0.02] border border-[#c9a84c]/15 relative overflow-hidden group">
+                   <div className="absolute top-0 right-0 p-10 opacity-[0.03] rotate-12 pointer-events-none">
+                      <Ticket size={240} />
+                   </div>
 
-              <div className="grid gap-6">
-                {(booking.tickets || [{ ticketId: booking.ticketId }]).map((t, idx) => (
-                  <div key={t.ticketId} className="card !p-0 overflow-hidden bg-white/[0.01] border-white/10 group relative shadow-[0_40px_100px_rgba(255,255,255,0.03)]">
-                    {/* Visual Flair */}
-                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-20 transition-opacity">
-                      <Ticket size={80} strokeWidth={0.5} className="rotate-12" />
-                    </div>
+                   <div className="p-10 relative z-10 flex flex-col md:flex-row gap-12 items-center">
+                      {/* QR */}
+                      {qr && qr[t.ticketId] && (
+                         <div className="p-4 bg-white rounded-lg shadow-[0_0_50px_rgba(201,168,76,0.15)] flex-shrink-0">
+                            <img src={qr[t.ticketId]} alt="QR" className="w-[180px] h-[180px]" />
+                         </div>
+                      )}
 
-                    <div className="p-8 space-y-6 relative z-10">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <p className="text-white/20 text-[8px] font-black uppercase tracking-[0.3em]">HOLDER IDENTITY</p>
-                          <h2 className="text-white font-black text-2xl tracking-tight uppercase">{booking.name}</h2>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-white/20 text-[8px] font-black uppercase tracking-[0.3em]">TICKET {idx + 1} / {booking.quantity || 1}</p>
-                          <p className="text-white/40 text-[10px] font-mono font-bold mt-1">{t.ticketId}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col md:flex-row items-center gap-10 pt-4">
-                        {qr && qr[t.ticketId] && (
-                          <div className="relative group/qr">
-                            <div className="absolute -inset-4 bg-white/5 rounded-[2rem] blur-xl opacity-0 group-hover/qr:opacity-100 transition-opacity" />
-                            <div className="relative p-2 bg-white rounded-2xl shadow-2xl">
-                              <img src={qr[t.ticketId]} alt="Ticket QR" className="w-32 h-32" />
+                      {/* Info */}
+                      <div className="flex-1">
+                         <div className="flex justify-between items-start mb-6">
+                            <div>
+                               <div className="text-[9px] tracking-[3px] uppercase text-[#c9a84c] mb-1">Pass Holder</div>
+                               <div className="font-playfair text-3xl font-bold text-white">{booking.name}</div>
                             </div>
-                          </div>
-                        )}
-                        <div className="flex-1 space-y-4 text-center md:text-left">
-                          <div className="flex items-center justify-center md:justify-start gap-2">
-                             {t.scanned ? (
-                               <span className="badge-verified"><CheckCircle size={10} /> Checked In</span>
-                             ) : (
-                               <span className="badge-pending"><Clock size={10} /> Valid Entry</span>
-                             )}
-                          </div>
-                          <p className="text-white/30 text-[10px] font-medium leading-relaxed max-w-[200px] mx-auto md:mx-0">
-                            Present this QR at the entrance for verification. Screenshot allowed.
-                          </p>
-                        </div>
+                            <div className="text-right">
+                               <div className="text-[9px] tracking-[3px] uppercase text-[#7a6e5c] mb-1">Pass {idx+1}/{booking.quantity}</div>
+                               <div className="font-mono text-[11px] text-[#c9a84c]">{t.ticketId}</div>
+                            </div>
+                         </div>
+
+                         <div className="space-y-3 border-t border-white/5 pt-6">
+                            <div className="flex items-center gap-3 text-[11px] text-[#7a6e5c] uppercase tracking-widest">
+                               <CheckCircle size={14} className="text-green-500" /> Authenticated Entry
+                            </div>
+                            <p className="text-[12px] text-[#7a6e5c] leading-relaxed italic">
+                               "As voices unite, the melody transcends. Present this code at the gate for seamless entry into the soundscape."
+                            </p>
+                         </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <div className="card bg-white/[0.02] border-white/5 !p-6 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/40">
-                      <FileText size={18} />
-                    </div>
-                    <div>
-                      <p className="text-white font-black text-xs uppercase tracking-widest">Master PDF</p>
-                      <p className="text-white/20 text-[10px] font-bold">ALL {booking.quantity} TICKETS IN ONE FILE</p>
-                    </div>
-                  </div>
-                  <button onClick={handleDownloadPDF} className="btn-secondary w-auto px-6 py-3 text-[9px] font-black uppercase tracking-widest">
-                     Download Master Ticket
-                  </button>
+                   </div>
                 </div>
+              ))}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <button 
-                    onClick={handleShare}
-                    className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/20 transition-all text-[10px] font-black uppercase tracking-widest"
-                  >
-                    Share on WhatsApp
-                  </button>
-                  
-                  <div className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-white/[0.02] border border-white/5 text-white/40 text-[10px] font-black uppercase tracking-widest">
-                    <Phone size={14} /> Support: {event?.supportNumber || '7093237728'}
-                  </div>
-                </div>
+              <div ref={addToRefs} className="reveal flex flex-col sm:flex-row gap-4">
+                 <button onClick={handleDownloadPDF} className="btn-gold flex-1 flex items-center justify-center gap-3">
+                    <Download size={16} /> Download Master PDF
+                 </button>
+                 <button className="btn-ghost flex-1 flex items-center justify-center gap-3">
+                    <Share2 size={16} /> Share Pass
+                 </button>
               </div>
-            </div>
-          )}
+           </div>
+        )}
 
-          {/* ── Pending State ────────────────────────────────────────────────── */}
-          {booking.status === 'pending' && (
-            <div className="space-y-10">
-               <div>
-                  <div className="flex items-center gap-3 mb-4">
-                     <Clock size={16} className="text-white/40 animate-pulse" />
-                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Manual Review Required</p>
-                  </div>
-                  <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-[0.95]">
-                     Validation<br />In Progress
-                  </h1>
-               </div>
+        {/* ── PENDING/INITIATED ── */}
+        {(booking.status === 'pending' || booking.status === 'initiated') && (
+           <div ref={addToRefs} className="reveal max-w-xl mx-auto text-center space-y-10">
+              <div className="p-16 border border-dashed border-[#c9a84c]/20 bg-[#c9a84c]/[0.02]">
+                 <div className="relative w-24 h-24 mx-auto mb-8">
+                    <div className="absolute inset-0 border-2 border-[#c9a84c]/10 rounded-full" />
+                    <div className="absolute inset-0 border-2 border-[#c9a84c] border-t-transparent rounded-full animate-spin" />
+                    <Clock size={32} className="absolute inset-0 m-auto text-[#c9a84c] animate-pulse" />
+                 </div>
+                 <h2 className="font-playfair text-2xl font-bold mb-4">Verifying Transaction</h2>
+                 <p className="text-[13px] text-[#7a6e5c] leading-relaxed mb-8">
+                    We are currently matching your UTR code <span className="text-[#c9a84c]">{booking.utr || 'PENDING'}</span> against our bank records. This typically takes 5–15 minutes during peak hours.
+                 </p>
+                 <div className="text-[10px] tracking-[4px] uppercase text-[#c9a84c]/40">Next sync in {countdown}s</div>
+              </div>
+              
+              {booking.status === 'initiated' && (
+                <button onClick={() => navigate('/submit')} className="btn-gold w-full mt-4">
+                   Submit Transaction ID (UTR)
+                </button>
+              )}
 
-               <div className="card !p-10 flex flex-col items-center text-center gap-6 bg-black/40 border-white/5">
-                  <div className="relative h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div 
-                      className="absolute inset-y-0 left-0 bg-white transition-all duration-1000 ease-linear shadow-[0_0_15px_white]" 
-                      style={{ width: `${(countdown / 10) * 100}%` }}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">NEXT SYNC IN {countdown}S</p>
-                     <p className="text-white/50 text-[13px] font-medium leading-relaxed max-w-[280px]">
-                        Our security team is matching your UTR code against bank records. This typically takes 5–20 minutes.
-                     </p>
-                  </div>
-                  <button onClick={fetchStatus} className="btn-secondary w-auto px-6 py-3 rounded-xl border-white/5 text-[9px] uppercase tracking-widest font-black">
-                     <RefreshCcw size={12} className={loading ? 'animate-spin' : ''} /> Force Refresh
-                  </button>
-               </div>
-            </div>
-          )}
+              <button onClick={fetchStatus} className="text-[10px] tracking-[3px] uppercase text-[#7a6e5c] hover:text-[#c9a84c] flex items-center gap-2 mx-auto">
+                 <RefreshCcw size={12} /> Force Manual Sync
+              </button>
+           </div>
+        )}
 
-          {/* ── Rejected State ───────────────────────────────────────────────── */}
-          {booking.status === 'rejected' && (
-            <div className="space-y-10">
-               <div>
-                  <div className="flex items-center gap-3 mb-4 text-red-500/60">
-                     <XCircle size={16} />
-                     <p className="text-[10px] font-black uppercase tracking-[0.4em]">Validation Failed</p>
-                  </div>
-                  <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-[0.95]">
-                     Booking<br />Rejected
-                  </h1>
-               </div>
+        {/* ── REJECTED ── */}
+        {booking.status === 'rejected' && (
+           <div ref={addToRefs} className="reveal max-w-xl mx-auto space-y-8">
+              <div className="p-10 border border-red-500/20 bg-red-500/[0.02] text-center">
+                 <XCircle size={48} className="text-red-500 mx-auto mb-6" />
+                 <h2 className="font-playfair text-2xl font-bold mb-4">Verification Unsuccessful</h2>
+                 <p className="text-[13px] text-[#7a6e5c] leading-relaxed mb-8">
+                    {booking.rejectionReason || 'We could not find a matching transaction for the UTR provided. Please double check your bank statement.'}
+                 </p>
+                 <button onClick={() => navigate('/submit')} className="btn-gold !bg-red-500 !text-white w-full">
+                    Retry UTR Submission
+                 </button>
+              </div>
+              
+              <div className="text-center text-[11px] text-[#7a6e5c] uppercase tracking-widest">
+                 Need help? DM us on Instagram <a href="https://instagram.com/themusicsociety26" target="_blank" rel="noreferrer" className="text-[#c9a84c] underline">@themusicsociety26</a>
+              </div>
+           </div>
+        )}
 
-               <div className="card !p-10 border-red-500/10 bg-red-500/[0.02]">
-                  <p className="text-red-400 text-xs font-bold leading-relaxed mb-8 border-l-2 border-red-500/20 pl-4">
-                     {booking.rejectionReason || 'We could not verify your transaction ID. Please check your bank statement and try again.'}
-                  </p>
-                  <button onClick={() => navigate('/submit')} className="btn-primary py-5 text-[10px] font-black uppercase tracking-widest bg-red-500 text-white hover:bg-red-600 shadow-red-500/5">
-                    Re-submit Transaction
-                  </button>
-               </div>
-            </div>
-          )}
-
-          <div className="pt-8 flex justify-center">
-            <button
-               onClick={() => navigate('/')}
-               className="flex items-center gap-2 text-white/20 hover:text-white/40 text-[9px] font-black uppercase tracking-[0.3em] transition-all"
-            >
-               <ArrowLeft size={12} /> Return to Entrance
-            </button>
-          </div>
-
-          <p className="text-center flex items-center justify-center gap-2 text-[9px] text-white/10 font-black uppercase tracking-widest mt-12 animate-pulse-slow">
-            <ShieldCheck size={12} /> Verification node: 0xA4F9..33D
-          </p>
+        <div className="mt-20 pt-10 border-t border-white/5 flex items-center justify-center gap-4 text-[10px] tracking-[3px] uppercase text-white/10 select-none">
+           <ShieldCheck size={14} /> Verification Node ID: MS-{bookingId.slice(-6).toUpperCase()}
         </div>
+
       </div>
-    </PublicLayout>
+    </div>
   );
 }

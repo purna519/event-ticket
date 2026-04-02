@@ -35,4 +35,7 @@ Thumbs.db
 # Project Specific
 backend/uploads/csv/*
 !backend/uploads/csv/.gitkeep
+backend/uploads/media/*
+!backend/uploads/media/.gitkeep
+backend/mongo_data/
 C:\Users\kuram\.gemini\antigravity\brain\*

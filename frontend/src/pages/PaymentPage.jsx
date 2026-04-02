@@ -1,18 +1,12 @@
-// ─── pages/PaymentPage.jsx ──────────────────────────────────────────────────
-// Instructions for UPI payment with deep links and unified layout.
-// ──────────────────────────────────────────────────────────────────────────────
-
-import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Smartphone, Info, ArrowRight, ArrowLeft, ShieldCheck, CreditCard, Sparkles, Phone, CheckSquare, Square } from 'lucide-react';
-import axios from 'axios';
+import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { Smartphone, Info, ArrowRight, ArrowLeft, ShieldCheck, CreditCard, Sparkles, Phone, CheckSquare, Square, Ticket, Music } from 'lucide-react';
 import api from '../api';
-import StepIndicator from '../components/StepIndicator';
-import PublicLayout from '../components/PublicLayout';
 
 export default function PaymentPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { eventId: paramId } = useParams();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(location.state?.quantity || 1);
@@ -20,6 +14,11 @@ export default function PaymentPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [phase, setPhase] = useState(1);
+  const [promoCode, setPromoCode] = useState('');
+  const [applyingPromo, setApplyingPromo] = useState(false);
+  const [promoError, setPromoError] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState(null);
+  const revealRefs = useRef([]);
 
   useEffect(() => {
     const token = localStorage.getItem('userToken');
@@ -30,209 +29,213 @@ export default function PaymentPage() {
 
     setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
 
-    api.get('/events/current').then((res) => {
+    const targetId = paramId || localStorage.getItem('activeEventId');
+    if (!targetId) {
+        navigate('/events');
+        return;
+    }
+
+    api.get(`/events/${targetId}`).then((res) => {
       setEvent(res.data);
       setLoading(false);
+    }).catch(() => {
+        setLoading(false);
     });
-  }, [navigate]);
+  }, [navigate, paramId]);
+
+  useEffect(() => {
+    if (loading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach(e => e.isIntersecting && e.target.classList.add('visible')),
+      { threshold: 0.1 }
+    );
+    revealRefs.current.forEach(ref => ref && observer.observe(ref));
+    return () => observer.disconnect();
+  }, [loading, phase]);
 
   useEffect(() => {
     if (event) {
-      api.get(`/bookings/payment-qr?amount=${event.price * quantity}`)
-        .then(res => setPaymentQr(res.data.qr));
+      const url = `/bookings/payment-qr?eventId=${event._id}&amount=${event.price * quantity}`;
+      api.get(url).then(res => {
+         if (res.data.qr !== paymentQr) {
+            setPaymentQr(res.data.qr);
+         }
+      });
     }
-  }, [event, quantity]);
+  }, [event, quantity, paymentQr]);
 
-  const [msg, setMsg] = useState('');
+  const applyPromo = async () => {
+    setApplyingPromo(true);
+    setPromoError('');
+    try {
+       const { data } = await api.post('/bookings/promo/validate', { code: promoCode });
+       setPromoDiscount({ type: data.discountType, value: data.discountValue });
+    } catch (err) {
+       setPromoError(err.response?.data?.error || 'Invalid promo code');
+       setPromoDiscount(null);
+    } finally {
+       setApplyingPromo(false);
+    }
+  };
 
   const handlePaymentDone = async () => {
     setSubmitting(true);
-    setMsg('');
     try {
-      await api.post('/bookings/initiate', { quantity });
+      const res = await api.post('/bookings/initiate', { 
+         eventId: event._id, 
+         quantity,
+         promoCode: promoDiscount ? promoCode : null
+      });
       navigate('/history');
     } catch (err) {
-      setMsg(err.response?.data?.error || 'Failed to initiate booking');
+      alert(err.response?.data?.error || 'Failed to initiate booking');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const totalAmount = event ? event.price * quantity : 0;
+  const baseAmount = event ? event.price * quantity : 0;
+  let totalAmount = baseAmount;
+  if (promoDiscount) {
+     if (promoDiscount.type === 'percent') {
+        totalAmount = Math.max(0, baseAmount - (baseAmount * (promoDiscount.value / 100)));
+     } else {
+        totalAmount = Math.max(0, baseAmount - promoDiscount.value);
+     }
+  }
   
+  const addToRefs = (el) => {
+    if (el && !revealRefs.current.includes(el)) revealRefs.current.push(el);
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="spinner w-10 h-10 border-[3px]" />
+      <div className="min-h-screen bg-[#070503] flex items-center justify-center">
+        <div className="w-10 h-10 border-2 border-[#c9a84c] border-t-transparent animate-spin rounded-full" />
       </div>
     );
   }
 
   return (
-    <PublicLayout>
-      <div className="animate-slide-up">
-        {/* Step Indicator */}
-        <div className="mb-12">
-          <StepIndicator current={phase === 1 ? 1 : 2} />
+    <div className="bg-[#070503] pt-[120px] pb-[100px] px-6 md:px-[60px]">
+      <div className="max-w-4xl mx-auto">
+        
+        {/* Header */}
+        <div ref={addToRefs} className="reveal mb-16">
+           <div className="text-[10px] tracking-[4px] uppercase text-[#c9a84c] mb-3">
+             Step {phase} of 3 — {phase === 1 ? 'Selection' : 'Payment'}
+           </div>
+           <h1 className="font-playfair text-[clamp(42px,5vw,72px)] font-black leading-[1] tracking-[-2px] text-white">
+              {phase === 1 ? 'Order' : 'Final'}<br /><em className="text-[#c9a84c] not-italic italic">{phase === 1 ? 'Quantities' : 'Settlement'}</em>
+           </h1>
         </div>
 
-        {/* Main Content */}
-        <div className="space-y-10">
-          <div className="relative">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="inline-block w-8 h-[1px] bg-gradient-to-r from-yellow-500/50 to-transparent" />
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-yellow-500/60">
-                {phase === 1 ? 'Phase I: Reservation' : 'Phase II: Settlement'}
-              </p>
+        {phase === 1 ? (
+          <div className="space-y-12">
+            <div ref={addToRefs} className="reveal bg-[#c9a84c]/[0.02] border border-[#c9a84c]/15 p-10 flex flex-col md:flex-row items-center justify-between gap-10">
+               <div>
+                  <div className="text-[10px] tracking-[3px] uppercase text-[#7a6e5c] mb-4">Total Society Pass Value</div>
+                  <div className="flex items-baseline gap-2 text-white">
+                     <span className="text-3xl font-light text-[#c9a84c]/40">₹</span>
+                     <span className="text-7xl font-bold font-playfair">{totalAmount}</span>
+                     <span className="text-2xl text-[#7a6e5c]">.00</span>
+                  </div>
+               </div>
+
+               <div className="flex items-center gap-4 bg-[#c9a84c]/5 border border-[#c9a84c]/15 p-3">
+                  <span className="text-[10px] tracking-[2px] uppercase text-[#7a6e5c] px-4 font-bold">Qty</span>
+                  <select 
+                    value={quantity}
+                    onChange={(e) => setQuantity(parseInt(e.target.value))}
+                    className="bg-[#070503] text-white font-bold p-4 border border-[#c9a84c]/10 focus:border-[#c9a84c] outline-none appearance-none min-w-[100px] text-center"
+                  >
+                    {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
+               </div>
             </div>
-            <h1 className="text-6xl font-black text-white tracking-tighter uppercase leading-[0.85] mb-4">
-              {phase === 1 ? (
-                <>Pass<br /><span className="text-white/40">Selection</span></>
-              ) : (
-                <>Final<br /><span className="text-white/40">Settlement</span></>
-              )}
-            </h1>
+
+            {/* Promo Code */}
+            <div ref={addToRefs} className="reveal bg-[#c9a84c]/[0.05] border border-[#c9a84c]/20 p-8 flex flex-col md:flex-row items-center gap-6">
+               <div className="flex-1 w-full">
+                  <div className="text-[10px] tracking-[3px] uppercase text-[#c9a84c] mb-3 font-bold">Have a Promo Code?</div>
+                  <input 
+                    type="text"
+                    placeholder="ENTER CODE"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    className="w-full bg-black/40 border border-[#c9a84c]/10 p-5 text-white uppercase tracking-widest text-[12px] outline-none focus:border-[#c9a84c] transition-all"
+                  />
+                  {promoError && <p className="text-red-500 text-[9px] mt-2 uppercase tracking-widest font-bold">{promoError}</p>}
+                  {promoDiscount && <p className="text-green-500 text-[9px] mt-2 uppercase tracking-widest font-bold">Promo Applied: {promoDiscount.type === 'percent' ? `${promoDiscount.value}% Off` : `₹${promoDiscount.value} Off`}</p>}
+               </div>
+               <button 
+                  onClick={applyPromo}
+                  disabled={!promoCode || applyingPromo}
+                  className="px-10 py-5 border border-[#c9a84c] text-[#c9a84c] text-[10px] font-black uppercase tracking-[3px] hover:bg-[#c9a84c] hover:text-[#070503] transition-all disabled:opacity-30 disabled:pointer-events-none"
+               >
+                  {applyingPromo ? 'Applying...' : 'Apply Code'}
+               </button>
+            </div>
+
+            <button 
+              onClick={() => setPhase(2)}
+              className="btn-gold w-full flex items-center justify-center gap-3 py-6"
+            >
+              Continue to Payment <ArrowRight size={18} />
+            </button>
           </div>
-
-          {phase === 1 ? (
-            <div className="space-y-12">
-              {/* Pricing Card */}
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-white/5 to-transparent rounded-[2.5rem] blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-                <div className="relative card !p-10 bg-black/60 border-white/10 flex flex-col md:flex-row items-center justify-between gap-10 overflow-hidden backdrop-blur-xl">
-                  {/* Availability Warning */}
-                  {event && quantity > (event.totalCapacity - event.reservedTickets) && (
-                    <div className="absolute inset-0 bg-red-500/10 backdrop-blur-md flex items-center justify-center p-8 z-10 text-center border border-red-500/20">
-                      <div>
-                        <p className="text-red-500 text-[10px] font-black uppercase tracking-[0.3em] mb-2">Capacity Alert</p>
-                        <p className="text-white text-sm font-bold uppercase tracking-tight">
-                          Only {Math.max(0, event.totalCapacity - event.reservedTickets)} Tickets Remaining
-                        </p>
-                        <p className="text-white/40 text-[9px] mt-2 uppercase font-black tracking-widest underline cursor-pointer" onClick={() => setQuantity(Math.max(1, event.totalCapacity - event.reservedTickets))}>
-                          Adjust to max available
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex-1">
-                    <p className="text-[9px] font-black text-yellow-500/40 uppercase tracking-[0.3em] mb-2">Total Amount</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-light text-white/30">₹</span>
-                      <p className="text-6xl font-black text-white tracking-tighter lowercase">{totalAmount}<span className="text-2xl text-white/20">.00</span></p>
-                    </div>
+        ) : (
+          <div className="space-y-12">
+            <div ref={addToRefs} className="reveal grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-8 lg:gap-12 items-center bg-[#c9a84c]/[0.02] border border-[#c9a84c]/15 p-8 lg:p-10">
+               <div className="text-center">
+                  <div className="p-3 bg-white rounded-lg inline-block shadow-[0_0_50px_rgba(201,168,76,0.15)] mb-4 lg:mb-6">
+                     <img src={paymentQr} alt="UPI QR" className="w-[180px] h-[180px] lg:w-[220px] lg:h-[220px]" />
                   </div>
-
-                  <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-3xl p-3">
-                    <p className="text-[9px] font-black text-white/30 uppercase tracking-widest px-4">Tickets</p>
-                    <select
-                      value={quantity}
-                      onChange={(e) => setQuantity(Number(e.target.value))}
-                      className="bg-black text-white font-black text-base px-8 py-4 rounded-2xl border border-white/10 focus:outline-none focus:border-yellow-500/50 transition-all cursor-pointer hover:bg-white/5"
-                    >
-                      {[1, 2, 3, 4].map(num => (
-                        <option key={num} value={num}>{num}</option>
-                      ))}
-                    </select>
+                  <div className="text-[9px] lg:text-[11px] tracking-[3px] uppercase text-[#c9a84c] font-bold">
+                     Scan with any UPI App
                   </div>
-                </div>
-              </div>
+               </div>
 
-              <button
-                onClick={() => {
-                  if (event && quantity > (event.totalCapacity - event.reservedTickets)) return;
-                  setPhase(2);
-                }}
-                disabled={event && quantity > (event.totalCapacity - event.reservedTickets)}
-                className={`w-full relative group overflow-hidden rounded-[2.5rem] ${event && quantity > (event.totalCapacity - event.reservedTickets) ? 'opacity-20 cursor-not-allowed' : ''}`}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-yellow-600 to-yellow-400 group-hover:scale-105 transition-transform duration-500" />
-                <div className="relative py-7 px-10 text-[11px] font-black uppercase tracking-[0.5em] text-black text-center font-bold">
-                  PROCEED TO PAYMENT
-                </div>
-              </button>
+               <div>
+                  <div className="sec-tag text-[#c9a84c] text-[10px] tracking-[4px] uppercase mb-4 lg:mb-6">Instructions</div>
+                  <div className="space-y-4 lg:space-y-6">
+                     <div className="flex gap-4">
+                        <div className="w-7 h-7 lg:w-8 lg:h-8 rounded-full border border-[#c9a84c]/30 flex items-center justify-center text-[#c9a84c] text-[11px] lg:text-[12px] font-bold shrink-0">1</div>
+                        <p className="text-[12px] lg:text-[13px] text-[#7a6e5c] leading-relaxed">Scan the QR code and pay exactly <strong className="text-white">₹{totalAmount}</strong>.</p>
+                     </div>
+                     <div className="flex gap-4">
+                        <div className="w-7 h-7 lg:w-8 lg:h-8 rounded-full border border-[#c9a84c]/30 flex items-center justify-center text-[#c9a84c] text-[11px] lg:text-[12px] font-bold shrink-0">2</div>
+                        <p className="text-[12px] lg:text-[13px] text-[#7a6e5c] leading-relaxed">Save the <strong className="text-white">Screenshot</strong> or copy the <strong className="text-white">UTR/Transaction ID</strong>.</p>
+                     </div>
+                     <div className="flex gap-4">
+                        <div className="w-7 h-7 lg:w-8 lg:h-8 rounded-full border border-[#c9a84c]/30 flex items-center justify-center text-[#c9a84c] text-[11px] lg:text-[12px] font-bold shrink-0">3</div>
+                        <p className="text-[12px] lg:text-[13px] text-[#7a6e5c] leading-relaxed">After paying, click the <strong className="text-[#c9a84c]">GOLD BUTTON</strong> below to proceed.</p>
+                     </div>
+                  </div>
+               </div>
             </div>
-          ) : (
-            <div className="space-y-10">
-              {/* Instructions */}
-              <div className="space-y-6 text-center">
-                {isMobile ? (
-                  <div className="p-8 rounded-[2.5rem] bg-yellow-500/5 border border-yellow-500/20">
-                    <p className="text-yellow-500 text-sm font-black uppercase tracking-tight italic">
-                      Mobile User detected
-                    </p>
-                    <p className="text-white/60 text-[11px] mt-2 font-bold uppercase tracking-widest leading-relaxed">
-                      please take a screen shot and make payment<br />
-                      and then click the below button
-                    </p>
-                  </div>
-                ) : (
-                  <div className="p-8 rounded-[2.5rem] bg-yellow-500/5 border border-yellow-500/20">
-                    <p className="text-yellow-500 text-sm font-black uppercase tracking-tight italic">
-                      Desktop users detected
-                    </p>
-                    <p className="text-white/60 text-[11px] mt-2 font-bold uppercase tracking-widest leading-relaxed">
-                      please scan qr code and make paymnet<br />
-                      and click on the below button
-                    </p>
-                  </div>
-                )}
-              </div>
 
-              {/* QR Section */}
-              <div className="flex justify-center">
-                <div className="relative group p-[1px] bg-gradient-to-br from-white/20 to-transparent rounded-[3rem]">
-                  <div className="relative bg-black rounded-[2.9rem] p-10 text-center">
-                    <div className="relative p-6 bg-white rounded-3xl mx-auto inline-block">
-                      <img src={paymentQr} alt="Payment QR" className="w-56 h-56" />
-                    </div>
-                    <div className="mt-6 flex items-center justify-center gap-2">
-                       <p className="text-white/40 text-[10px] uppercase font-black tracking-widest italic">AMOUNT TO PAY:</p>
-                       <span className="text-xl font-black text-white italic tracking-tighter">₹{totalAmount}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action */}
-              <div className="space-y-6">
-                <button
-                  disabled={submitting}
-                  onClick={handlePaymentDone}
-                  className="w-full relative group overflow-hidden rounded-[2.5rem]"
-                >
-                  <div className="absolute inset-0 bg-white group-hover:bg-zinc-200 transition-colors" />
-                  <div className="relative py-7 px-10 text-[11px] font-black uppercase tracking-[0.3em] text-black text-center font-bold">
-                    {submitting ? 'PROCESSING...' : 'Click here after payment is completed'}
-                  </div>
-                </button>
-
-                {msg && (
-                  <div className="p-5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest text-center">
-                    {msg}
-                  </div>
-                )}
-
-                <button
-                  onClick={() => setPhase(1)}
-                  className="w-full py-4 text-[9px] font-black text-white/20 uppercase tracking-[0.5em] hover:text-white/40 transition-all italic"
-                >
-                  Change Ticket Quantity
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="pt-12 text-center">
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/[0.02] border border-white/5">
-              <ShieldCheck size={12} className="text-yellow-500/40" />
-              <p className="text-[9px] text-white/10 font-black uppercase tracking-[0.3em]">
-                Verified Premium Gateway • Secured by HMS Protocol
-              </p>
+            <div ref={addToRefs} className="reveal space-y-4 pt-4 lg:pt-0">
+               <button 
+                onClick={handlePaymentDone}
+                disabled={submitting}
+                className="btn-gold w-full flex items-center justify-center gap-3 py-6 shadow-[0_0_30px_rgba(201,168,76,0.3)] hover:shadow-[0_0_50px_rgba(201,168,76,0.5)] transition-shadow"
+               >
+                 {submitting ? 'Initiating Verification...' : 'I HAVE MADE THE PAYMENT'} <ArrowRight size={18} />
+               </button>
+               <button onClick={() => setPhase(1)} className="w-full text-center text-[10px] tracking-[3px] uppercase text-[#7a6e5c] hover:text-[#c9a84c] py-2">Go Back & Modify Order</button>
             </div>
           </div>
+        )}
+
+        <div className="mt-16 pt-10 border-t border-white/5 flex flex-col items-center gap-4">
+           <div className="flex items-center gap-3 text-[10px] tracking-[3px] uppercase text-white/10">
+              <ShieldCheck size={14} /> Encrypted Payment Node • Secure Gateway
+           </div>
         </div>
+
       </div>
-    </PublicLayout>
+    </div>
   );
 }

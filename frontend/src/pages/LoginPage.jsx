@@ -20,9 +20,9 @@ export default function LoginPage() {
       localStorage.setItem('userToken', res.data.token);
       localStorage.setItem('userData', JSON.stringify(res.data.user));
       navigate('/');
+      window.location.reload();
     } catch (err) {
-      if (err.response?.status === 43) {
-        // Not verified
+      if (err.response?.status === 403) {
         navigate(`/verify?email=${encodeURIComponent(email)}`);
       } else {
         setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
@@ -33,25 +33,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-8 anim-fade-in">
+    <div className="min-h-screen bg-[#070503] flex items-center justify-center p-6">
+      <div className="w-full max-w-md space-y-8 animate-hero-in">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 border border-white/10 mb-4 animate-pulse">
-            <LogIn className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#c9a84c]/5 border border-[#c9a84c]/20 mb-4">
+            <LogIn className="w-8 h-8 text-[#c9a84c]" />
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tighter uppercase">Welcome Back</h1>
-          <p className="text-zinc-500 text-sm tracking-wide uppercase font-bold">Sign in to access your tickets</p>
+          <h1 className="font-playfair text-4xl font-black text-white tracking-tighter uppercase">Welcome<br /><em className="text-[#c9a84c] not-italic italic">Back</em></h1>
+          <p className="text-[#7a6e5c] text-[10px] tracking-[3px] uppercase font-bold">Sign in to your society account</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-[10px] text-zinc-500 font-black uppercase ml-1 tracking-widest">Email Address</label>
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="space-y-2">
+            <label className="text-[9px] tracking-[2.5px] uppercase text-[#7a6e5c]">Email Address</label>
             <div className="relative group">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-white transition-colors" />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7a6e5c] group-focus-within:text-[#c9a84c] transition-colors" />
               <input
                 type="email"
                 required
-                className="w-full bg-zinc-900/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-zinc-700 focus:border-white/40 focus:bg-zinc-900 transition-all outline-none"
+                className="w-full bg-[#c9a84c]/[0.03] border border-[#c9a84c]/15 p-[14px_16px] pl-12 text-white font-dm text-[14px] outline-none focus:border-[#c9a84c] transition-all"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -59,17 +59,17 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="space-y-1">
-            <div className="flex items-center justify-between ml-1">
-              <label className="text-[10px] text-zinc-500 font-black uppercase tracking-widest">Password</label>
-              <Link to="/reset-password" name="forgot-password" id="forgot-password" className="text-[10px] text-zinc-500 hover:text-white transition-colors font-black uppercase tracking-widest">Forgot?</Link>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[9px] tracking-[2.5px] uppercase text-[#7a6e5c]">Password</label>
+              <Link to="/reset-password" className="text-[9px] tracking-[2.5px] uppercase text-[#c9a84c] hover:underline">Forgot?</Link>
             </div>
             <div className="relative group">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-white transition-colors" />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7a6e5c] group-focus-within:text-[#c9a84c] transition-colors" />
               <input
                 type="password"
                 required
-                className="w-full bg-zinc-900/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-zinc-700 focus:border-white/40 focus:bg-zinc-900 transition-all outline-none"
+                className="w-full bg-[#c9a84c]/[0.03] border border-[#c9a84c]/15 p-[14px_16px] pl-12 text-white font-dm text-[14px] outline-none focus:border-[#c9a84c] transition-all"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -78,27 +78,27 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
-              <p className="text-red-500 text-xs font-bold text-center uppercase tracking-tight">{error}</p>
+            <div className="p-4 bg-red-500/10 border border-red-500/20">
+              <p className="text-red-500 text-[11px] font-bold text-center uppercase tracking-tight">{error}</p>
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-white text-black font-black py-4 rounded-2xl hover:bg-zinc-200 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-tighter"
+            className="w-full btn-gold flex items-center justify-center gap-3"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
               <>
-                Sign In <ArrowRight className="w-5 h-5" />
+                Sign In <ArrowRight size={16} />
               </>
             )}
           </button>
         </form>
 
-        <p className="text-center text-zinc-500 text-xs font-bold uppercase tracking-widest">
-          Don't have an account?{' '}
-          <Link to="/register" name="sign-up" id="sign-up" className="text-white hover:underline transition-all">Sign Up</Link>
+        <p className="text-center text-[#7a6e5c] text-[10px] tracking-[2.5px] uppercase font-bold">
+          New to the society?{' '}
+          <Link to="/register" className="text-[#c9a84c] hover:underline transition-all">Register</Link>
         </p>
       </div>
     </div>

@@ -16,14 +16,35 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 
 // ─── CORS ───────────────────────────────────────────────────────────────────
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (Postman, mobile apps, server-to-server)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked: ${origin}`));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/user/auth', require('./routes/userAuth'));
 app.use('/api/events', require('./routes/events'));
 app.use('/api/bookings', require('./routes/bookings'));
-app.use('/api/admin', require('./routes/admin'));
+app.use('/api/admin', require('./routes/admin/index'));
+app.use('/api/reviews', require('./routes/reviews'));
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
@@ -81,7 +102,7 @@ async function seedAdminAndEvent() {
       passwordHash,
     });
     console.log(
-      `👤 Default admin created: ${process.env.ADMIN_USERNAME || 'admin'} / ${process.env.ADMIN_PASSWORD || 'admin123'}`
+      `👤 Default admin created: ${process.env.ADMIN_USERNAME || 'admin'} (password set from env)`
     );
   }
 
@@ -100,6 +121,8 @@ async function seedAdminAndEvent() {
     upiId: process.env.UPI_ID || 'q840550651@ybl',
     upiName: process.env.UPI_NAME || 'The Music Society',
     upiNote: process.env.UPI_NOTE || 'BhajanJamTicket',
+    slug: 'bhajan-jam-3',
+    status: 'Active'
   };
 
   if (!event) {

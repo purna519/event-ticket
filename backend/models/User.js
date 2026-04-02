@@ -10,6 +10,9 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true },
+    gender: { type: String, enum: ['male', 'female', 'other', 'prefer-not-to-say'], default: 'male' },
+    dob: { type: Date }, // Date of Birth
+    ageGroup: { type: String }, // e.g. "18-24", "25-34"
     password: { type: String, required: true },
     encryptedPassword: { type: String }, // For admin support visibility
     isVerified: { type: Boolean, default: false },

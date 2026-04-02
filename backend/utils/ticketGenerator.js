@@ -27,9 +27,9 @@ async function generatePDF(booking, event, qrMap) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({
       size: 'A4',
-      margin: 30,
+      margin: 0, // Manual margins for better control
       info: {
-        Title: `Tickets - ${event.name}`,
+        Title: `Official Entry Pass - ${event.name}`,
         Author: 'The Music Society',
       },
     });
@@ -43,111 +43,125 @@ async function generatePDF(booking, event, qrMap) {
       ? booking.tickets
       : [{ ticketId: booking.ticketId }];
 
-    // Load poster image buffer if exists
-    let posterBuffer = null;
-    const posterPath = path.join(__dirname, '..', 'assets', 'poster.png');
-    if (fs.existsSync(posterPath)) {
-      posterBuffer = fs.readFileSync(posterPath);
-    }
+    // ── COLORS ───────────────────────────────────────────────────────────────
+    const GOLD = '#c9a84c';
+    const BLACK = '#070503';
+    const WHITE = '#ffffff';
+    const GRAY = '#7a6e5c';
 
-    // Layout Constants (A4: 595.28 x 841.89)
-    const cardW = 250;
-    const cardH = 380;
+    // ── LAYOUT CONSTANTS ─────────────────────────────────────────────────────
+    const pageWidth = 595.28;
+    const pageHeight = 841.89;
 
-    // Render only the primary ticket (Entry Pass)
-    const t = tickets[0];
-    const marginX = 175; // Centered on A4 (595/2 - 250/2)
-    const marginY = 50;
-    const x = marginX;
-    const y = marginY;
-
-    // ── Card Border ──────────────────────────────────────────────────────────
-    doc.rect(x, y, cardW, cardH).lineWidth(0.5).strokeColor('#e5e7eb').stroke();
-    
-    // ── Header (Black) ───────────────────────────────────────────────────────
-    doc.rect(x, y, cardW, 60).fill('#000000');
-    doc.fillColor('#ffffff').fontSize(10).font('Helvetica-Bold')
-      .text(event.name.toUpperCase(), x + 15, y + 15, { width: cardW - 30, tracking: 1 });
-    doc.fontSize(6).fillColor('#9ca3af')
-      .text('THE MUSIC SOCIETY PRESENTS', x + 15, y + 45);
-
-    // ── Event Visual (Poster) ────────────────────────────────────────────────
-    if (posterBuffer) {
-      doc.image(posterBuffer, x + 15, y + 75, { width: 70, height: 90 });
+    // ── MAIN BACKGROUND (PREMIUM ARTWORK WATERMARK) ──────────────────────────
+    const bgImagePath = path.join(__dirname, '../../frontend/public/hero_gold_guitar.jpg');
+    if (fs.existsSync(bgImagePath)) {
+        // Draw the uploaded golden artwork as the full-scale background
+        doc.image(bgImagePath, 0, 0, { width: pageWidth, height: pageHeight });
+        // Add a strong dark translucent overlay so text remains perfectly readable
+        doc.rect(0, 0, pageWidth, pageHeight).fillColor(BLACK).fillOpacity(0.85).fill();
+        doc.fillOpacity(1); // Reset opacity for subsequent drawing
     } else {
-      doc.rect(x + 15, y + 75, 70, 90).fill('#f3f4f6');
-      doc.fillColor('#9ca3af').fontSize(8).text('BHAJAN', x + 25, y + 115);
+        doc.rect(0, 0, pageWidth, pageHeight).fill(BLACK);
     }
+    
+    // ── OUTER GOLD BORDER (ROYAL) ───────────────────────────────────────────
+    doc.rect(20, 20, pageWidth - 40, pageHeight - 40).lineWidth(2).strokeColor(GOLD).stroke();
+    doc.rect(28, 28, pageWidth - 56, pageHeight - 56).lineWidth(0.5).strokeColor(GOLD).stroke();
+    
+    // Decorative Corners (L-shapes)
+    const cornerSize = 40;
+    const drawCorner = (x, y, xDir, yDir) => {
+        doc.moveTo(x, y).lineTo(x + xDir * cornerSize, y).lineWidth(4).strokeColor(GOLD).stroke();
+        doc.moveTo(x, y).lineTo(x, y + yDir * cornerSize).lineWidth(4).strokeColor(GOLD).stroke();
+    };
+    drawCorner(20, 20, 1, 1);
+    drawCorner(pageWidth - 20, 20, -1, 1);
+    drawCorner(20, pageHeight - 20, 1, -1);
+    drawCorner(pageWidth - 20, pageHeight - 20, -1, -1);
 
-    // ── Details ──────────────────────────────────────────────────────────────
-    const detX = x + 100;
-    const addRow = (label, value, ry, link) => {
-      doc.fillColor('#9ca3af').fontSize(5).font('Helvetica-Bold').text(label.toUpperCase(), detX, y + ry);
-      const options = { width: cardW - 110 };
-      if (link) options.link = link;
-      doc.fillColor(link ? '#3b82f6' : '#000000').fontSize(7).font('Helvetica-Bold').text(value, detX, y + ry + 8, options);
+    // ── VINYL RECORD WATERMARK (CENTERED & ARTISTIC) ─────────────────────────
+    doc.save();
+    doc.translate(pageWidth / 2, pageHeight / 2);
+    for (let i = 0; i < 25; i++) {
+        doc.circle(0, 0, 100 + i * 15).lineWidth(0.2).strokeColor(GOLD + '08').stroke();
+    }
+    doc.circle(0, 0, 120).lineWidth(0.5).strokeColor(GOLD + '15').stroke();
+    doc.restore();
+
+    // ── TOP BRANDING ────────────────────────────────────────────────────────
+    doc.fillColor(GOLD).fontSize(9).font('Helvetica-Bold')
+      .text('THE MUSIC SOCIETY OFFICIAL PRODUCTION', 0, 70, { align: 'center', width: pageWidth, tracking: 10 });
+
+    // ── ORNAMENTAL LINE ─────────────────────────────────────────────────────
+    doc.moveTo(pageWidth/2 - 50, 95).lineTo(pageWidth/2 + 50, 95).lineWidth(1).strokeColor(GOLD).stroke();
+
+    // ── MAIN HEADER (HOLLOW GOLD BRACKET) ────────────────────────────────────
+    doc.rect(40, 130, pageWidth - 80, 100)
+       .fillColor(BLACK).fillOpacity(0.5).fill()
+       .lineWidth(1).strokeColor(GOLD).strokeOpacity(1).stroke();
+    doc.fillOpacity(1);
+    
+    doc.fillColor(GOLD).fontSize(34).font('Helvetica-Bold')
+      .text(event.name.toUpperCase(), 40, 155, { tracking: 2, width: pageWidth - 80, align: 'center', lineGap: 5 });
+    
+    doc.fillColor(WHITE).fontSize(10).font('Helvetica-Bold')
+      .text(`EP. ${String(event.episodeNum || 3).padStart(2,'0')} • OFFICIAL TFI EVENT • EXCLUSIVE ACCESS`, 0, 205, { align: 'center', width: pageWidth, tracking: 5 });
+
+    // ── SUB-HEADER ──────────────────────────────────────────────────────────
+    doc.fillColor(WHITE).fontSize(14).font('Helvetica-Bold')
+      .text('IDENTITY SIGNATURE & ENTRY PASS', 0, 280, { align: 'center', width: pageWidth, tracking: 8 });
+
+    // ── EVENT DETAILS (VERTICAL FLOW) ───────────────────────────────────────
+    const sectionX = 80;
+    let currentY = 350;
+
+    const addPremiumSection = (label, value, isHighlighted = false) => {
+        doc.fillColor(GRAY).fontSize(8).font('Helvetica-Bold').text(label.toUpperCase(), sectionX, currentY, { tracking: 5 });
+        doc.fillColor(isHighlighted ? GOLD : WHITE).fontSize(20).font('Helvetica-Bold').text(value, sectionX, currentY + 18);
+        
+        // Dynamic decorative dot
+        doc.circle(sectionX - 20, currentY + 28, 2).fill(GOLD);
+        
+        currentY += 75;
     };
 
-    addRow('Location', event.venue, 75, event.locationUrl);
-    addRow('Date', event.date, 100);
-    addRow('Time', event.time, 125);
-    addRow('UTR (REF)', booking.utr || 'INTERNAL_GEN', 150);
+    addPremiumSection('Venue Location', event.venue || 'Reserved Society Venue');
+    addPremiumSection('Scheduled Date', new Date(event.date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+    addPremiumSection('Admission Start', event.time || 'Entry at 6:30 PM');
+    addPremiumSection('Record ID (UTR)', booking.utr || 'INTERNAL_ADMIN_ISSUE', true);
 
-    // ── Separator (Dashed) ───────────────────────────────────────────────────
-    const sepY = y + 180;
-    doc.moveTo(x + 15, sepY).lineTo(x + cardW - 15, sepY)
-      .dash(2, { space: 2 }).strokeColor('#d1d5db').lineWidth(0.5).stroke().undash();
+    // ── ACCESS TIER (FIXED POSITION AT BOTTOM) ─────────────────────────────
+    const bottomZoneY = pageHeight - 320;
+    doc.rect(80, bottomZoneY, pageWidth - 160, 45).fill(GOLD + '15').strokeColor(GOLD).lineWidth(1).stroke();
+    doc.fillColor(WHITE).fontSize(14).font('Helvetica-Bold')
+      .text(`ACCESS GRANTED FOR ${booking.quantity} ${booking.quantity > 1 ? 'MEMBERS' : 'MEMBER'}`, 80, bottomZoneY + 16, { align: 'center', width: pageWidth - 160, tracking: 4 });
 
-    // ── Guest & Quantity (PROMINEANT) ─────────────────────────────────────────
-    doc.fillColor('#000000').fontSize(12).font('Helvetica-Bold')
-      .text(`ENTRY PASS FOR ${booking.quantity} ${booking.quantity > 1 ? 'PEOPLE' : 'PERSON'}`, x + 15, y + 195, { width: cardW - 30, align: 'center' });
-    
-    doc.fillColor('#9ca3af').fontSize(6).text('HOLDER: ', x + 15, y + 215, { continued: true })
-      .fillColor('#000000').font('Helvetica-Bold').text(`${booking.name.toUpperCase()}`);
+    // ── QR CODE ZONE ─────────────────────────────────────────────────────────
+    const qrSize = 120;
+    const qrDataUri = qrMap[tickets[0].ticketId];
+    const qrX = (pageWidth / 2) - (qrSize / 2);
+    const qrY = bottomZoneY + 70;
 
-    // ── QR Code Section ──────────────────────────────────────────────────────
-    const qrY = y + 230;
-    const qrWidth = 80;
-    const qrDataUri = qrMap[t.ticketId];
     if (qrDataUri) {
-      const base64Data = qrDataUri.replace(/^data:image\/png;base64,/, '');
-      const qrBuffer = Buffer.from(base64Data, 'base64');
-      doc.image(qrBuffer, x + (cardW / 2) - (qrWidth / 2), qrY, { width: qrWidth });
-    }
-
-    // ── Ticket ID & Counter ──────────────────────────────────────────────────
-    doc.fillColor('#000000').fontSize(7).font('Helvetica-Bold')
-      .text(t.ticketId, x, qrY + qrWidth + 5, { align: 'center', width: cardW });
-    
-    doc.fillColor('#9ca3af').fontSize(5)
-      .text(`BHANJAN EXPERIENCE PASS · 2026`, x, qrY + qrWidth + 15, { align: 'center', width: cardW });
-
-    // ── Sponsors Layer ───────────────────────────────────────────────────────
-    if (event.sponsors && event.sponsors.length > 0) {
-      const spX = x + 15;
-      const spY = y + cardH - 60;
-      doc.fillColor('#9ca3af').fontSize(4).font('Helvetica-Bold').text('PROUDLY SUPPORTED BY', spX, spY - 8);
-      
-      event.sponsors.slice(0, 4).forEach((sp, sidx) => {
-        const logoPath = path.join(__dirname, '..', sp.logoUrl);
-        const logoX = spX + sidx * 55;
+        // High-contrast frame for QR
+        doc.rect(qrX - 12, qrY - 12, qrSize + 24, qrSize + 24).fill(WHITE);
+        doc.rect(qrX - 9, qrY - 9, qrSize + 18, qrSize + 18).lineWidth(1).strokeColor(GOLD).stroke();
         
-        if (fs.existsSync(logoPath)) {
-          try {
-            doc.image(fs.readFileSync(logoPath), logoX, spY, { fit: [45, 30] });
-          } catch (e) {
-            doc.fillColor('#6b7280').fontSize(5).text(sp.name.toUpperCase(), logoX, spY + 10, { width: 50, truncate: true });
-          }
-        } else {
-          doc.fillColor('#6b7280').fontSize(5).text(sp.name.toUpperCase(), logoX, spY + 10, { width: 50, truncate: true });
-        }
-      });
+        const base64Data = qrDataUri.replace(/^data:image\/png;base64,/, '');
+        doc.image(Buffer.from(base64Data, 'base64'), qrX, qrY, { width: qrSize });
     }
 
-    // ── Footer ───────────────────────────────────────────────────────────────
-    doc.rect(x, y + cardH - 25, cardW, 25).fill('#f9fafb');
-    doc.fillColor('#9ca3af').fontSize(5)
-      .text(`AUTHENTIC ENTRY  ·  SUPPORT: ${event.supportNumber || '7093237728'}`, x, y + cardH - 15, { align: 'center', width: cardW });
+    // ── UNIQUE IDENTIFIER ───────────────────────────────────────────────────
+    doc.fillColor(GOLD).fontSize(10).font('Helvetica-Bold')
+      .text(tickets[0].ticketId.toUpperCase(), 0, qrY + qrSize + 22, { align: 'center', width: pageWidth, tracking: 8 });
+
+    // ── FOOTER ──────────────────────────────────────────────────────────────
+    doc.fillColor(GRAY).fontSize(8).font('Helvetica-Bold')
+      .text('MANDATORY PRODUCTION GUIDELINES', 0, pageHeight - 75, { align: 'center', width: pageWidth, tracking: 2 });
+    
+    doc.fillColor(GOLD).fontSize(9).font('Helvetica-Bold')
+      .text('STRICTLY NON-TRANSFERABLE • PRODUCTION HUB ACCESS ONLY', 0, pageHeight - 60, { align: 'center', width: pageWidth, tracking: 2 });
 
     doc.end();
   });
